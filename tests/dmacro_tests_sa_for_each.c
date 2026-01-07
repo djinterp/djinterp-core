@@ -32,7 +32,6 @@ d_tests_sa_dmacro_for_each_basic
 {
     bool   all_assertions_passed;
     size_t initial_tests_passed;
-    int    result;
 
     if (!_test_info)
     {
@@ -213,7 +212,6 @@ d_tests_sa_dmacro_for_each_comma
 {
     bool   all_assertions_passed;
     size_t initial_tests_passed;
-    int    arr[5];
     int    count;
 
     if (!_test_info)

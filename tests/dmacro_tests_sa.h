@@ -51,7 +51,7 @@ bool d_tests_sa_dmacro_cfg_all(struct d_test_counter* _test_info);
 
 
 // =============================================================================
-// I.   TOKEN MANIPULATION TEST FUNCTIONS (Section I of dmacro.h)
+// I.   TOKEN MANIPULATION TEST FUNCTIONS
 // =============================================================================
 
 // token pasting tests (D_CONCAT, D_INTERNAL_CONCAT_HELPER)
@@ -77,7 +77,26 @@ bool d_tests_sa_dmacro_token_all(struct d_test_counter* _test_info);
 
 
 // =============================================================================
-// II.  ARGUMENT COUNTING UTILITIES TEST FUNCTIONS (Section II of dmacro.h)
+// II.  ARRAY UTILITIES TEST FUNCTIONS
+// =============================================================================
+
+// compile-time array sizing tests
+bool d_tests_sa_dmacro_array_count_basic(struct d_test_counter* _test_info);
+bool d_tests_sa_dmacro_array_count_initialized(struct d_test_counter* _test_info);
+bool d_tests_sa_dmacro_array_count_structs(struct d_test_counter* _test_info);
+bool d_tests_sa_dmacro_array_count_safe(struct d_test_counter* _test_info);
+bool d_tests_sa_dmacro_array_count_t(struct d_test_counter* _test_info);
+
+// array generation tests
+bool d_tests_sa_dmacro_make_array(struct d_test_counter* _test_info);
+bool d_tests_sa_dmacro_make_string_array(struct d_test_counter* _test_info);
+
+// array utilities module aggregator
+bool d_tests_sa_dmacro_array_all(struct d_test_counter* _test_info);
+
+
+// =============================================================================
+// III. ARGUMENT COUNTING TEST FUNCTIONS
 // =============================================================================
 
 // D_VARG_COUNT tests
@@ -94,15 +113,15 @@ bool d_tests_sa_dmacro_has_args_large_counts(struct d_test_counter* _test_info);
 bool d_tests_sa_dmacro_has_args_conditionals(struct d_test_counter* _test_info);
 
 // combined and boundary tests
-bool d_tests_sa_dmacro_argcount_combined(struct d_test_counter* _test_info);
-bool d_tests_sa_dmacro_argcount_boundary(struct d_test_counter* _test_info);
+bool d_tests_sa_dmacro_arg_count_combined(struct d_test_counter* _test_info);
+bool d_tests_sa_dmacro_arg_count_boundary(struct d_test_counter* _test_info);
 
 // argument counting module aggregator
-bool d_tests_sa_dmacro_argcount_all(struct d_test_counter* _test_info);
+bool d_tests_sa_dmacro_arg_count_all(struct d_test_counter* _test_info);
 
 
 // =============================================================================
-// III. MACRO EXPANSION AND EVALUATION TEST FUNCTIONS (Section III of dmacro.h)
+// IV.  MACRO EXPANSION AND EVALUATION TEST FUNCTIONS
 // =============================================================================
 
 // D_INC tests
@@ -126,55 +145,7 @@ bool d_tests_sa_dmacro_eval_all(struct d_test_counter* _test_info);
 
 
 // =============================================================================
-// IV.  ARRAY UTILITIES TEST FUNCTIONS (Section IV of dmacro.h)
-// =============================================================================
-
-// compile-time array sizing tests
-bool d_tests_sa_dmacro_array_count_basic(struct d_test_counter* _test_info);
-bool d_tests_sa_dmacro_array_count_initialized(struct d_test_counter* _test_info);
-bool d_tests_sa_dmacro_array_count_structs(struct d_test_counter* _test_info);
-bool d_tests_sa_dmacro_array_count_safe(struct d_test_counter* _test_info);
-bool d_tests_sa_dmacro_array_count_t(struct d_test_counter* _test_info);
-
-// array initializer tests
-bool d_tests_sa_dmacro_make_array(struct d_test_counter* _test_info);
-bool d_tests_sa_dmacro_make_string_array(struct d_test_counter* _test_info);
-
-// array utilities module aggregator
-bool d_tests_sa_dmacro_array_all(struct d_test_counter* _test_info);
-
-
-// =============================================================================
-// III. ARGUMENT COUNTING UTILITIES TEST FUNCTIONS (Section III of dmacro.h)
-// =============================================================================
-
-// argument counting tests
-bool d_tests_sa_dmacro_varg_count_basic(struct d_test_counter* _test_info);
-bool d_tests_sa_dmacro_varg_count_limits(struct d_test_counter* _test_info);
-bool d_tests_sa_dmacro_has_args(struct d_test_counter* _test_info);
-
-// positional argument extraction tests
-bool d_tests_sa_dmacro_varg_get_arg(struct d_test_counter* _test_info);
-bool d_tests_sa_dmacro_varg_get_aliases(struct d_test_counter* _test_info);
-
-// argument utilities module aggregator
-bool d_tests_sa_dmacro_args_all(struct d_test_counter* _test_info);
-
-
-// =============================================================================
-// IV.  MACRO EXPANSION AND EVALUATION TEST FUNCTIONS (Section IV of dmacro.h)
-// =============================================================================
-
-// cascading expansion tests
-bool d_tests_sa_dmacro_eval_basic(struct d_test_counter* _test_info);
-bool d_tests_sa_dmacro_eval_nested(struct d_test_counter* _test_info);
-
-// evaluation module aggregator
-bool d_tests_sa_dmacro_eval_all(struct d_test_counter* _test_info);
-
-
-// =============================================================================
-// V.   BOOLEAN AND CONDITIONAL LOGIC TEST FUNCTIONS (Section V of dmacro.h)
+// V.   BOOLEAN AND CONDITIONAL LOGIC TEST FUNCTIONS
 // =============================================================================
 
 // probe mechanism tests
@@ -197,7 +168,7 @@ bool d_tests_sa_dmacro_boolean_all(struct d_test_counter* _test_info);
 
 
 // =============================================================================
-// VI.  ARGUMENT SELECTION TEST FUNCTIONS (Section VI of dmacro.h)
+// VI.  ARGUMENT SELECTION TEST FUNCTIONS
 // =============================================================================
 
 // convenience alias tests
@@ -212,7 +183,7 @@ bool d_tests_sa_dmacro_selection_all(struct d_test_counter* _test_info);
 
 
 // =============================================================================
-// VII. CORE ITERATION INFRASTRUCTURE TEST FUNCTIONS (Section VII of dmacro.h)
+// VII. CORE ITERATION INFRASTRUCTURE TEST FUNCTIONS
 // =============================================================================
 
 // map termination tests
@@ -226,7 +197,7 @@ bool d_tests_sa_dmacro_iteration_core_all(struct d_test_counter* _test_info);
 
 
 // =============================================================================
-// VIII. FOR_EACH IMPLEMENTATIONS TEST FUNCTIONS (Section VIII of dmacro.h)
+// VIII. FOR_EACH IMPLEMENTATIONS TEST FUNCTIONS
 // =============================================================================
 
 // basic iteration tests
@@ -245,12 +216,16 @@ bool d_tests_sa_dmacro_for_each_all(struct d_test_counter* _test_info);
 
 
 // =============================================================================
-// IX.  PAIR AND INDEXED ITERATION TEST FUNCTIONS (Section IX of dmacro.h)
+// IX.  PAIR AND INDEXED ITERATION TEST FUNCTIONS
 // =============================================================================
 
 // pair iteration tests
 bool d_tests_sa_dmacro_for_each_pair(struct d_test_counter* _test_info);
 bool d_tests_sa_dmacro_for_each_pair_sep(struct d_test_counter* _test_info);
+
+// triple and 4tuple iteration tests
+bool d_tests_sa_dmacro_for_each_triple(struct d_test_counter* _test_info);
+bool d_tests_sa_dmacro_for_each_4tuple(struct d_test_counter* _test_info);
 
 // indexed iteration tests
 bool d_tests_sa_dmacro_for_each_indexed(struct d_test_counter* _test_info);
@@ -260,7 +235,7 @@ bool d_tests_sa_dmacro_pair_indexed_all(struct d_test_counter* _test_info);
 
 
 // =============================================================================
-// X.   MEMBER ACCESS ITERATION TEST FUNCTIONS (Section X of dmacro.h)
+// X.   MEMBER ACCESS ITERATION TEST FUNCTIONS
 // =============================================================================
 
 // pointer member access tests
@@ -277,60 +252,18 @@ bool d_tests_sa_dmacro_member_access_all(struct d_test_counter* _test_info);
 
 
 // =============================================================================
-// XI.  ADVANCED ITERATION PATTERNS TEST FUNCTIONS (Section XI of dmacro.h)
+// XI.  ADVANCED ITERATION PATTERNS TEST FUNCTIONS
 // =============================================================================
 
 // adjacent pair tests
 bool d_tests_sa_dmacro_adjacent_pair(struct d_test_counter* _test_info);
-
-// triple iteration tests
-bool d_tests_sa_dmacro_for_each_triple(struct d_test_counter* _test_info);
 
 // advanced iteration module aggregator
 bool d_tests_sa_dmacro_advanced_iter_all(struct d_test_counter* _test_info);
 
 
 // =============================================================================
-// XII. CODE GENERATION UTILITIES TEST FUNCTIONS (Section XII of dmacro.h)
-// =============================================================================
-
-// struct generation tests
-bool d_tests_sa_dmacro_make_struct(struct d_test_counter* _test_info);
-
-// enum generation tests
-bool d_tests_sa_dmacro_make_enum(struct d_test_counter* _test_info);
-bool d_tests_sa_dmacro_make_enum_valued(struct d_test_counter* _test_info);
-
-// function generation tests
-bool d_tests_sa_dmacro_make_function(struct d_test_counter* _test_info);
-
-// initializer generation tests
-bool d_tests_sa_dmacro_make_initializer(struct d_test_counter* _test_info);
-
-// switch case generation tests
-bool d_tests_sa_dmacro_make_switch(struct d_test_counter* _test_info);
-
-// code generation module aggregator
-bool d_tests_sa_dmacro_codegen_all(struct d_test_counter* _test_info);
-
-
-// =============================================================================
-// XIII. FUNCTIONAL STYLE OPERATIONS TEST FUNCTIONS (Section XIII of dmacro.h)
-// =============================================================================
-
-// mapping operation tests
-bool d_tests_sa_dmacro_map_transform(struct d_test_counter* _test_info);
-
-// concatenation operation tests
-bool d_tests_sa_dmacro_concat_all(struct d_test_counter* _test_info);
-bool d_tests_sa_dmacro_cat_n(struct d_test_counter* _test_info);
-
-// functional style module aggregator
-bool d_tests_sa_dmacro_functional_all(struct d_test_counter* _test_info);
-
-
-// =============================================================================
-// XIV. POINTER ARRAY INITIALIZATION TEST FUNCTIONS (Section XIV of dmacro.h)
+// XII. POINTER ARRAY INITIALIZATION TEST FUNCTIONS
 // =============================================================================
 
 // data-comma iteration tests
@@ -344,7 +277,7 @@ bool d_tests_sa_dmacro_ptr_array_all(struct d_test_counter* _test_info);
 
 
 // =============================================================================
-// XV.  UTILITY OPERATORS TEST FUNCTIONS (Section XV of dmacro.h)
+// XIII. UTILITY OPERATORS TEST FUNCTIONS
 // =============================================================================
 
 // debug/test operator tests
@@ -355,7 +288,7 @@ bool d_tests_sa_dmacro_utility_all(struct d_test_counter* _test_info);
 
 
 // =============================================================================
-// XVI. COMPILE-TIME ASSERTIONS TEST FUNCTIONS (Section XVI of dmacro.h)
+// XIV. COMPILE-TIME ASSERTIONS TEST FUNCTIONS
 // =============================================================================
 
 // size/type check tests

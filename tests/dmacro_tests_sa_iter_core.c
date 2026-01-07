@@ -117,8 +117,6 @@ d_tests_sa_dmacro_map_internals
 {
     bool   all_assertions_passed;
     size_t initial_tests_passed;
-    int    results[5];
-    int    i;
 
     if (!_test_info)
     {

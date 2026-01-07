@@ -1,15 +1,15 @@
 /******************************************************************************
-* djinterp [test]                                       dmacro_tests_sa_array.c
+* djinterp [test]                                  dmacro_tests_sa_array_util.c
 *
 *   Unit tests for `dmacro.h` array utilities section (Section II).
 *   Tests compile-time array sizing macros (D_ARRAY_COUNT, D_ARRAY_COUNT_SAFE,
-*   D_ARRAY_COUNT_T) and array initializer macros (D_MAKE_ARRAY,
+*   D_ARRAY_COUNT_T) and array generation macros (D_MAKE_ARRAY,
 *   D_MAKE_STRING_ARRAY).
 *   Note: this module tests fundamental macro utilities that are dependencies
 * of other djinterp modules, so it uses `test_standalone.h` rather than DTest.
 *
 *
-* path:      \test\dmacro_tests_sa_array.c
+* path:      \test\dmacro_tests_sa_array_util.c
 * link:      TBA
 * author(s): Samuel 'teer' Neal-Blim                          date: 2025.12.30
 ******************************************************************************/
@@ -38,12 +38,12 @@ d_tests_sa_dmacro_array_count_basic
 {
     bool   all_assertions_passed;
     size_t initial_tests_passed;
-    int    int_arr_1[1];
-    int    int_arr_5[5];
-    int    int_arr_10[10];
-    int    int_arr_100[100];
-    char   char_arr[20];
-    double double_arr[7];
+    int    int_arr_1[1]     = { 0 };
+    int    int_arr_5[5]     = { 0 };
+    int    int_arr_10[10]   = { 0 };
+    int    int_arr_100[100] = { 0 };
+    char   char_arr[20]     = { '\0' };
+    double double_arr[7]    = { 0.0f };
     void*  ptr_arr[15];
     size_t count;
 
@@ -56,15 +56,6 @@ d_tests_sa_dmacro_array_count_basic
     initial_tests_passed  = _test_info->tests_passed;
 
     printf("%s--- Testing D_ARRAY_COUNT Basic Functionality ---\n", D_INDENT);
-
-    // suppress unused variable warnings
-    (void)int_arr_1;
-    (void)int_arr_5;
-    (void)int_arr_10;
-    (void)int_arr_100;
-    (void)char_arr;
-    (void)double_arr;
-    (void)ptr_arr;
 
     // test with single element array
     count = D_ARRAY_COUNT(int_arr_1);
@@ -907,7 +898,7 @@ d_tests_sa_dmacro_array_all
     printf("\n");
     printf("=========================================");
     printf("=======================================\n");
-    printf("[MODULE] Testing Array Utilities (Section IV)\n");
+    printf("[MODULE] Testing Array Utilities (Section II)\n");
     printf("=========================================");
     printf("=======================================\n");
 
