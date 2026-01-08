@@ -30,8 +30,8 @@
 * author(s): Samuel 'teer' Neal-Blim                          date: 2023.03.27
 ******************************************************************************/
 
-#ifndef DJINTERP_ENVIRONMENT_
-#define DJINTERP_ENVIRONMENT_ 1
+#ifndef DJINTERP_C_ENVIRONMENT_
+#define DJINTERP_C_ENVIRONMENT_ 1
 
 
 // =============================================================================
@@ -1750,4 +1750,4 @@
 #endif  // D_DEBUG_
 
 
-#endif  // DJINTERP_ENVIRONMENT_
+#endif  // DJINTERP_C_ENVIRONMENT_
