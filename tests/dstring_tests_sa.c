@@ -2,7 +2,7 @@
 
 
 /*
-d_tests_sa_strcpy_s
+d_tests_sa_dstring_strcpy_s
   Tests the `d_strcpy_s` function which safely copies strings with bounds checking.
   Tests the following:
   - successful string copying
@@ -12,7 +12,7 @@ d_tests_sa_strcpy_s
   - buffer overflow protection
 */
 bool
-d_tests_sa_strcpy_s
+d_tests_sa_dstring_strcpy_s
 (
     struct d_test_counter* _test_info
 )
@@ -132,7 +132,7 @@ d_tests_sa_strcpy_s
 }
 
 /*
-d_tests_sa_strncpy_s
+d_tests_sa_dstring_strncpy_s
   Tests the `d_strncpy_s` function which safely copies bounded strings.
   Tests the following:
   - successful bounded string copying
@@ -142,7 +142,7 @@ d_tests_sa_strncpy_s
   - proper null termination
 */
 bool
-d_tests_sa_strncpy_s
+d_tests_sa_dstring_strncpy_s
 (
     struct d_test_counter* _test_info
 )
@@ -262,7 +262,7 @@ d_tests_sa_strncpy_s
 }
 
 /*
-d_tests_sa_strcat_s
+d_tests_sa_dstring_strcat_s
   Tests the `d_strcat_s` function which safely concatenates strings.
   Tests the following:
   - successful string concatenation
@@ -272,7 +272,7 @@ d_tests_sa_strcat_s
   - buffer overflow protection
 */
 bool
-d_tests_sa_strcat_s
+d_tests_sa_dstring_strcat_s
 (
     struct d_test_counter* _test_info
 )
@@ -372,7 +372,7 @@ d_tests_sa_strcat_s
 }
 
 /*
-d_tests_sa_strncat_s
+d_tests_sa_dstring_strncat_s
   Tests the `d_strncat_s` function which safely concatenates bounded strings.
   Tests the following:
   - successful bounded string concatenation
@@ -382,7 +382,7 @@ d_tests_sa_strncat_s
   - buffer overflow protection
 */
 bool
-d_tests_sa_strncat_s
+d_tests_sa_dstring_strncat_s
 (
     struct d_test_counter* _test_info
 )
@@ -490,7 +490,7 @@ d_tests_sa_strncat_s
 */
 
 /*
-d_tests_sa_strdup
+d_tests_sa_dstring_strdup
   Tests the `d_strdup` function which duplicates strings by allocating memory.
   Tests the following:
   - successful string duplication
@@ -499,7 +499,7 @@ d_tests_sa_strdup
   - memory allocation validation
 */
 bool
-d_tests_sa_strdup
+d_tests_sa_dstring_strdup
 (
     struct d_test_counter* _test_info
 )
@@ -596,7 +596,7 @@ d_tests_sa_strdup
 }
 
 /*
-d_tests_sa_strndup
+d_tests_sa_dstring_strndup
   Tests the `d_strndup` function which duplicates bounded strings.
   Tests the following:
   - successful bounded string duplication
@@ -606,7 +606,7 @@ d_tests_sa_strndup
   - proper null termination
 */
 bool
-d_tests_sa_strndup
+d_tests_sa_dstring_strndup
 (
     struct d_test_counter* _test_info
 )
@@ -709,7 +709,7 @@ d_tests_sa_strndup
 */
 
 /*
-d_tests_sa_strcasecmp
+d_tests_sa_dstring_strcasecmp
   Tests the `d_strcasecmp` function which compares strings ignoring case.
   Tests the following:
   - case-insensitive equal strings
@@ -719,7 +719,7 @@ d_tests_sa_strcasecmp
   - special character handling
 */
 bool
-d_tests_sa_strcasecmp
+d_tests_sa_dstring_strcasecmp
 (
     struct d_test_counter* _test_info
 )
@@ -832,7 +832,7 @@ d_tests_sa_strcasecmp
 }
 
 /*
-d_tests_sa_strncasecmp
+d_tests_sa_dstring_strncasecmp
   Tests the `d_strncasecmp` function which compares bounded strings ignoring case.
   Tests the following:
   - bounded case-insensitive comparison
@@ -842,7 +842,7 @@ d_tests_sa_strncasecmp
   - partial string comparison
 */
 bool
-d_tests_sa_strncasecmp
+d_tests_sa_dstring_strncasecmp
 (
     struct d_test_counter* _test_info
 )
@@ -951,7 +951,7 @@ d_tests_sa_strncasecmp
 */
 
 /*
-d_tests_sa_strtok_r
+d_tests_sa_dstring_strtok_r
   Tests the `d_strtok_r` function which provides thread-safe string tokenization.
   Tests the following:
   - successful string tokenization
@@ -961,7 +961,7 @@ d_tests_sa_strtok_r
   - continuing tokenization
 */
 bool
-d_tests_sa_strtok_r
+d_tests_sa_dstring_strtok_r
 (
     struct d_test_counter* _test_info
 )
@@ -1122,7 +1122,7 @@ d_tests_sa_strtok_r
 */
 
 /*
-d_tests_sa_strnlen
+d_tests_sa_dstring_strnlen
   Tests the `d_strnlen` function which calculates string length with a maximum limit.
   Tests the following:
   - normal string length calculation
@@ -1132,7 +1132,7 @@ d_tests_sa_strnlen
   - strings shorter than maximum
 */
 bool
-d_tests_sa_strnlen
+d_tests_sa_dstring_strnlen
 (
     struct d_test_counter* _test_info
 )
@@ -1231,7 +1231,7 @@ d_tests_sa_strnlen
 */
 
 /*
-d_tests_sa_strcasestr
+d_tests_sa_dstring_strcasestr
   Tests the `d_strcasestr` function which finds substrings ignoring case.
   Tests the following:
   - case-insensitive substring search
@@ -1241,7 +1241,7 @@ d_tests_sa_strcasestr
   - substring at beginning and end
 */
 bool
-d_tests_sa_strcasestr
+d_tests_sa_dstring_strcasestr
 (
     struct d_test_counter* _test_info
 )
@@ -1350,7 +1350,7 @@ d_tests_sa_strcasestr
 */
 
 /*
-d_tests_sa_strlwr
+d_tests_sa_dstring_strlwr
   Tests the `d_strlwr` function which converts strings to lowercase.
   Tests the following:
   - successful lowercase conversion
@@ -1360,7 +1360,7 @@ d_tests_sa_strlwr
   - special characters and numbers
 */
 bool
-d_tests_sa_strlwr
+d_tests_sa_dstring_strlwr
 (
     struct d_test_counter* _test_info
 )
@@ -1460,7 +1460,7 @@ d_tests_sa_strlwr
 }
 
 /*
-d_tests_sa_strupr
+d_tests_sa_dstring_strupr
   Tests the `d_strupr` function which converts strings to uppercase.
   Tests the following:
   - successful uppercase conversion
@@ -1470,7 +1470,7 @@ d_tests_sa_strupr
   - special characters and numbers
 */
 bool
-d_tests_sa_strupr
+d_tests_sa_dstring_strupr
 (
     struct d_test_counter* _test_info
 )
@@ -1576,7 +1576,7 @@ d_tests_sa_strupr
 */
 
 /*
-d_tests_sa_strrev
+d_tests_sa_dstring_strrev
   Tests the `d_strrev` function which reverses strings in place.
   Tests the following:
   - successful string reversal
@@ -1586,7 +1586,7 @@ d_tests_sa_strrev
   - even and odd length strings
 */
 bool
-d_tests_sa_strrev
+d_tests_sa_dstring_strrev
 (
     struct d_test_counter* _test_info
 )
@@ -1703,7 +1703,7 @@ d_tests_sa_strrev
 */
 
 /*
-d_tests_sa_strchrnul
+d_tests_sa_dstring_strchrnul
   Tests the `d_strchrnul` function which finds characters or returns string end.
   Tests the following:
   - successful character finding
@@ -1713,7 +1713,7 @@ d_tests_sa_strchrnul
   - multiple occurrences
 */
 bool
-d_tests_sa_strchrnul
+d_tests_sa_dstring_strchrnul
 (
     struct d_test_counter* _test_info
 )
@@ -1823,7 +1823,7 @@ d_tests_sa_strchrnul
 */
 
 /*
-d_tests_sa_strerror_r
+d_tests_sa_dstring_strerror_r
   Tests the `d_strerror_r` function which provides thread-safe error strings.
   Tests the following:
   - successful error message generation
@@ -1833,7 +1833,7 @@ d_tests_sa_strerror_r
   - buffer overflow protection
 */
 bool
-d_tests_sa_strerror_r
+d_tests_sa_dstring_strerror_r
 (
     struct d_test_counter* _test_info
 )
@@ -1933,7 +1933,7 @@ d_tests_sa_strerror_r
 */
 
 /*
-d_tests_sa_dstring_all
+d_tests_sa_dstring_dstring_all
   Runs all basic dstring function tests.
   Tests the following:
   - all safe string copy functions
@@ -1948,7 +1948,7 @@ d_tests_sa_dstring_all
   - error handling function
 */
 bool
-d_tests_sa_dstring_all
+d_tests_sa_dstring_dstring_all
 (
     struct d_test_counter* _test_info
 )
@@ -1960,40 +1960,40 @@ d_tests_sa_dstring_all
     printf("\n=== Running comprehensive dstring module tests ===\n\n");
 
     // safe string copy function tests
-    overall_result &= d_tests_sa_strcpy_s(_test_info);
-    overall_result &= d_tests_sa_strncpy_s(_test_info);
-    overall_result &= d_tests_sa_strcat_s(_test_info);
-    overall_result &= d_tests_sa_strncat_s(_test_info);
+    overall_result &= d_tests_sa_dstring_strcpy_s(_test_info);
+    overall_result &= d_tests_sa_dstring_strncpy_s(_test_info);
+    overall_result &= d_tests_sa_dstring_strcat_s(_test_info);
+    overall_result &= d_tests_sa_dstring_strncat_s(_test_info);
 
     // string duplication function tests
-    overall_result &= d_tests_sa_strdup(_test_info);
-    overall_result &= d_tests_sa_strndup(_test_info);
+    overall_result &= d_tests_sa_dstring_strdup(_test_info);
+    overall_result &= d_tests_sa_dstring_strndup(_test_info);
 
     // case-insensitive comparison function tests
-    overall_result &= d_tests_sa_strcasecmp(_test_info);
-    overall_result &= d_tests_sa_strncasecmp(_test_info);
+    overall_result &= d_tests_sa_dstring_strcasecmp(_test_info);
+    overall_result &= d_tests_sa_dstring_strncasecmp(_test_info);
 
     // tokenization function tests
-    overall_result &= d_tests_sa_strtok_r(_test_info);
+    overall_result &= d_tests_sa_dstring_strtok_r(_test_info);
 
     // length calculation function tests
-    overall_result &= d_tests_sa_strnlen(_test_info);
+    overall_result &= d_tests_sa_dstring_strnlen(_test_info);
 
     // search function tests
-    overall_result &= d_tests_sa_strcasestr(_test_info);
+    overall_result &= d_tests_sa_dstring_strcasestr(_test_info);
 
     // case conversion function tests
-    overall_result &= d_tests_sa_strlwr(_test_info);
-    overall_result &= d_tests_sa_strupr(_test_info);
+    overall_result &= d_tests_sa_dstring_strlwr(_test_info);
+    overall_result &= d_tests_sa_dstring_strupr(_test_info);
 
     // manipulation function tests
-    overall_result &= d_tests_sa_strrev(_test_info);
+    overall_result &= d_tests_sa_dstring_strrev(_test_info);
 
     // character search function tests
-    overall_result &= d_tests_sa_strchrnul(_test_info);
+    overall_result &= d_tests_sa_dstring_strchrnul(_test_info);
 
     // error handling function tests
-    overall_result &= d_tests_sa_strerror_r(_test_info);
+    overall_result &= d_tests_sa_dstring_strerror_r(_test_info);
 
     printf("\n=== dstring module tests complete ===\n");
 
@@ -2001,7 +2001,7 @@ d_tests_sa_dstring_all
 }
 
 /*
-d_tests_sa_dstring_all_extended
+d_tests_sa_dstring_dstring_all_extended
   Runs all dstring function tests with extended test cases and stress testing.
   Tests the following:
   - all basic dstring tests
@@ -2011,7 +2011,7 @@ d_tests_sa_dstring_all_extended
   - performance boundary testing
 */
 bool
-d_tests_sa_dstring_all_extended
+d_tests_sa_dstring_dstring_all_extended
 (
     struct d_test_counter* _test_info
 )
@@ -2023,7 +2023,7 @@ d_tests_sa_dstring_all_extended
     printf("\n=== Running extended dstring module tests ===\n\n");
 
     // run all basic tests first
-    overall_result &= d_tests_sa_dstring_all(_test_info);
+    overall_result &= d_tests_sa_dstring_dstring_all(_test_info);
 
     printf("\n--- Extended testing not yet implemented ---\n");
     printf("Future extended tests will include:\n");

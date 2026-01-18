@@ -1,474 +1,826 @@
 /******************************************************************************
-* djinterp [test]                                          dstring_tests_sa_dup.c
+* djinterp [test]                                            dstring_tests_dup.c
 *
-*   Tests for string duplication operations (strdup, strndup) and 
-* case-insensitive comparison (strcasecmp, strncasecmp).
+*   Unit tests for d_string duplication functions:
+*     - d_string_dup
+*     - d_string_ndup
+*     - d_string_substr
 *
-*
-* path:      \src\test\dstring_tests_sa_dup.c
+* path:      \src\test\dstring_tests_dup.c
 * link:      TBA
 * author(s): Samuel 'teer' Neal-Blim                          date: 2025.12.30
 ******************************************************************************/
-#include ".\dstring_tests_sa.h"
+
+#include "..\tests\dstring_tests_sa.h"
 
 
 /******************************************************************************
- * STRING DUPLICATION TESTS
- *****************************************************************************/
+* d_tests_sa_dstring_dup
+******************************************************************************/
 
 /*
-d_tests_dstring_strdup
-  Tests d_strdup for string duplication.
-  Tests the following:
-  - duplicates normal string correctly
-  - allocates correct amount of memory
-  - returns NULL for NULL input
-  - handles empty string
-  - creates independent copy
-  - handles strings with special characters
+d_tests_sa_dstring_dup
+  Tests d_string_dup() which creates a duplicate (deep copy) of a d_string.
+
+Test cases:
+  1.  NULL string returns NULL
+  2.  Duplicate empty string
+  3.  Duplicate normal string
+  4.  Duplicate is independent copy
+  5.  Duplicate has same content
+  6.  Duplicate has same size
+  7.  Original unchanged after dup
+  8.  Modifying duplicate doesn't affect original
+
+Parameter(s):
+  (none)
+Return:
+  Test object containing all assertion results.
 */
 struct d_test_object*
-d_tests_dstring_strdup
+d_tests_sa_dstring_dup
 (
     void
 )
 {
     struct d_test_object* group;
-    char*                 dup1;
-    char*                 dup2;
-    char*                 dup3;
-    char*                 dup4;
-    char                  original[] = "Modifiable";
-    bool                  test_normal_dup;
-    bool                  test_null_input;
-    bool                  test_empty_string;
-    bool                  test_independence;
-    bool                  test_special_chars;
-    bool                  test_memory_allocated;
-    size_t                idx;
+    struct d_string*      original;
+    struct d_string*      duplicate;
+    size_t                child_idx;
 
-    // test 1: normal duplication
-    dup1 = d_strdup(D_TEST_DSTRING_MEDIUM_STR);
-    test_normal_dup = (dup1 != NULL) && 
-                     (strcmp(dup1, D_TEST_DSTRING_MEDIUM_STR) == 0) &&
-                     (dup1 != D_TEST_DSTRING_MEDIUM_STR);
-
-    // test 2: NULL input
-    dup2 = d_strdup(NULL);
-    test_null_input = (dup2 == NULL);
-
-    // test 3: empty string
-    dup3 = d_strdup("");
-    test_empty_string = (dup3 != NULL) && 
-                       (dup3[0] == '\0') && 
-                       (strlen(dup3) == 0);
-
-    // test 4: independence (modify original after dup)
-    dup4 = d_strdup(original);
-    test_independence = false;
-    
-    if (dup4)
-    {
-        original[0] = 'X';
-        test_independence = (dup4[0] == 'M') && 
-                          (strcmp(dup4, "Modifiable") == 0);
-    }
-
-    // test 5: special characters
-    char special[] = "Tab\there\nNewline\r\nCRLF";
-    char* dup5 = d_strdup(special);
-    test_special_chars = (dup5 != NULL) && 
-                         (strcmp(dup5, special) == 0);
-
-    // test 6: memory is actually allocated (different pointers)
-    char* dup6 = d_strdup(D_TEST_DSTRING_SHORT_STR);
-    test_memory_allocated = (dup6 != NULL) && 
-                           (dup6 != D_TEST_DSTRING_SHORT_STR);
-
-    // cleanup
-    if (dup1) free(dup1);
-    if (dup3) free(dup3);
-    if (dup4) free(dup4);
-    if (dup5) free(dup5);
-    if (dup6) free(dup6);
-
-    // build result tree
-    group = d_test_object_new_interior("d_strdup", 6);
+    group     = d_test_object_new_interior("d_string_dup", 10);
+    child_idx = 0;
 
     if (!group)
     {
         return NULL;
     }
 
-    idx = 0;
-    group->elements[idx++] = D_ASSERT_TRUE("normal_dup",
-                                           test_normal_dup,
-                                           "duplicates normal string correctly");
-    group->elements[idx++] = D_ASSERT_TRUE("null_input",
-                                           test_null_input,
-                                           "returns NULL for NULL input");
-    group->elements[idx++] = D_ASSERT_TRUE("empty_string",
-                                           test_empty_string,
-                                           "handles empty string");
-    group->elements[idx++] = D_ASSERT_TRUE("independence",
-                                           test_independence,
-                                           "creates independent copy");
-    group->elements[idx++] = D_ASSERT_TRUE("special_chars",
-                                           test_special_chars,
-                                           "handles special characters");
-    group->elements[idx++] = D_ASSERT_TRUE("memory_allocated",
-                                           test_memory_allocated,
-                                           "allocates separate memory");
+    // test 1: NULL string returns NULL
+    duplicate = d_string_dup(NULL);
+    group->elements[child_idx++] = D_ASSERT_NULL(
+        "null_returns_null",
+        duplicate,
+        "d_string_dup(NULL) should return NULL"
+    );
 
-    return group;
-}
+    // test 2: duplicate empty string
+    original = d_string_new();
 
-
-/*
-d_tests_dstring_strndup
-  Tests d_strndup for counted string duplication.
-  Tests the following:
-  - duplicates n characters correctly
-  - null-terminates result
-  - handles n larger than string length
-  - returns NULL for NULL input
-  - handles zero count
-  - truncates at specified length
-*/
-struct d_test_object*
-d_tests_dstring_strndup
-(
-    void
-)
-{
-    struct d_test_object* group;
-    char*                 dup1;
-    char*                 dup2;
-    char*                 dup3;
-    char*                 dup4;
-    char*                 dup5;
-    bool                  test_partial_dup;
-    bool                  test_null_termination;
-    bool                  test_n_larger;
-    bool                  test_null_input;
-    bool                  test_zero_count;
-    bool                  test_truncation;
-    size_t                idx;
-
-    // test 1: partial duplication (first 5 chars of "Hello, World!")
-    dup1 = d_strndup(D_TEST_DSTRING_MEDIUM_STR, 5);
-    test_partial_dup = (dup1 != NULL) && 
-                      (strcmp(dup1, "Hello") == 0) && 
-                      (strlen(dup1) == 5);
-
-    // test 2: null termination
-    dup2 = d_strndup("Testing123", 4);
-    test_null_termination = (dup2 != NULL) && 
-                           (dup2[4] == '\0') && 
-                           (strcmp(dup2, "Test") == 0);
-
-    // test 3: n larger than string length
-    dup3 = d_strndup(D_TEST_DSTRING_SHORT_STR, 100);
-    test_n_larger = (dup3 != NULL) && 
-                   (strcmp(dup3, D_TEST_DSTRING_SHORT_STR) == 0) &&
-                   (strlen(dup3) == strlen(D_TEST_DSTRING_SHORT_STR));
-
-    // test 4: NULL input
-    dup4 = d_strndup(NULL, 10);
-    test_null_input = (dup4 == NULL);
-
-    // test 5: zero count
-    dup5 = d_strndup(D_TEST_DSTRING_SHORT_STR, 0);
-    test_zero_count = (dup5 != NULL) && (dup5[0] == '\0');
-
-    // test 6: proper truncation
-    char* dup6 = d_strndup(D_TEST_DSTRING_LONG_STR, 20);
-    test_truncation = (dup6 != NULL) && 
-                     (strlen(dup6) == 20) &&
-                     (strncmp(dup6, D_TEST_DSTRING_LONG_STR, 20) == 0);
-
-    // cleanup
-    if (dup1) free(dup1);
-    if (dup2) free(dup2);
-    if (dup3) free(dup3);
-    if (dup5) free(dup5);
-    if (dup6) free(dup6);
-
-    // build result tree
-    group = d_test_object_new_interior("d_strndup", 6);
-
-    if (!group)
+    if (original)
     {
-        return NULL;
+        duplicate = d_string_dup(original);
+
+        group->elements[child_idx++] = D_ASSERT_NOT_NULL(
+            "empty_dup_not_null",
+            duplicate,
+            "duplicating empty string should return non-NULL"
+        );
+
+        if (duplicate)
+        {
+            group->elements[child_idx++] = D_ASSERT_EQUAL(
+                "empty_dup_size_0",
+                duplicate->size, 0,
+                "duplicate of empty string should have size 0"
+            );
+
+            d_string_free(duplicate);
+        }
+        else
+        {
+            group->elements[child_idx++] = D_ASSERT_TRUE(
+                "empty_size_skip", false, "skip"
+            );
+        }
+
+        d_string_free(original);
+    }
+    else
+    {
+        group->elements[child_idx++] = D_ASSERT_TRUE("empty_skip", false, "skip");
+        group->elements[child_idx++] = D_ASSERT_TRUE("empty_size_skip", false, "skip");
     }
 
-    idx = 0;
-    group->elements[idx++] = D_ASSERT_TRUE("partial_dup",
-                                           test_partial_dup,
-                                           "duplicates n characters correctly");
-    group->elements[idx++] = D_ASSERT_TRUE("null_termination",
-                                           test_null_termination,
-                                           "null-terminates result");
-    group->elements[idx++] = D_ASSERT_TRUE("n_larger",
-                                           test_n_larger,
-                                           "handles n larger than string length");
-    group->elements[idx++] = D_ASSERT_TRUE("null_input",
-                                           test_null_input,
-                                           "returns NULL for NULL input");
-    group->elements[idx++] = D_ASSERT_TRUE("zero_count",
-                                           test_zero_count,
-                                           "handles zero count");
-    group->elements[idx++] = D_ASSERT_TRUE("truncation",
-                                           test_truncation,
-                                           "truncates at specified length");
+    // test 3: duplicate normal string
+    original = d_string_new_from_cstr("Hello World");
 
-    return group;
-}
-
-
-/*
-d_tests_dstring_duplication_all
-  Runs all string duplication tests.
-  Tests the following:
-  - d_strdup
-  - d_strndup
-*/
-struct d_test_object*
-d_tests_dstring_duplication_all
-(
-    void
-)
-{
-    struct d_test_object* group;
-    size_t                idx;
-
-    group = d_test_object_new_interior("String Duplication", 2);
-
-    if (!group)
+    if (original)
     {
-        return NULL;
+        duplicate = d_string_dup(original);
+
+        group->elements[child_idx++] = D_ASSERT_NOT_NULL(
+            "normal_dup_not_null",
+            duplicate,
+            "duplicating normal string should succeed"
+        );
+
+        if (duplicate)
+        {
+            // test 4: duplicate has same content
+            group->elements[child_idx++] = D_ASSERT_STR_EQUAL(
+                "dup_same_content",
+                duplicate->text, "Hello World",
+                "duplicate should have same content"
+            );
+
+            // test 5: duplicate has same size
+            group->elements[child_idx++] = D_ASSERT_EQUAL(
+                "dup_same_size",
+                duplicate->size, original->size,
+                "duplicate should have same size"
+            );
+
+            // test 6: duplicate is independent (different pointer)
+            group->elements[child_idx++] = D_ASSERT_TRUE(
+                "dup_independent_pointer",
+                duplicate->text != original->text,
+                "duplicate text should be at different address"
+            );
+
+            // test 7: modifying duplicate doesn't affect original
+            if (duplicate->size > 0)
+            {
+                duplicate->text[0] = 'X';
+
+                group->elements[child_idx++] = D_ASSERT_TRUE(
+                    "modify_dup_no_affect_original",
+                    original->text[0] == 'H',
+                    "modifying duplicate should not affect original"
+                );
+            }
+            else
+            {
+                group->elements[child_idx++] = D_ASSERT_TRUE(
+                    "modify_skip", false, "skip"
+                );
+            }
+
+            d_string_free(duplicate);
+        }
+        else
+        {
+            group->elements[child_idx++] = D_ASSERT_TRUE("content_skip", false, "skip");
+            group->elements[child_idx++] = D_ASSERT_TRUE("size_skip", false, "skip");
+            group->elements[child_idx++] = D_ASSERT_TRUE("ptr_skip", false, "skip");
+            group->elements[child_idx++] = D_ASSERT_TRUE("modify_skip", false, "skip");
+        }
+
+        d_string_free(original);
+    }
+    else
+    {
+        group->elements[child_idx++] = D_ASSERT_TRUE("normal_skip", false, "skip");
+        group->elements[child_idx++] = D_ASSERT_TRUE("content_skip", false, "skip");
+        group->elements[child_idx++] = D_ASSERT_TRUE("size_skip", false, "skip");
+        group->elements[child_idx++] = D_ASSERT_TRUE("ptr_skip", false, "skip");
+        group->elements[child_idx++] = D_ASSERT_TRUE("modify_skip", false, "skip");
     }
 
-    idx = 0;
-    group->elements[idx++] = d_tests_dstring_strdup();
-    group->elements[idx++] = d_tests_dstring_strndup();
+    // test 8: duplicate long string
+    original = d_string_new_fill(500, 'A');
+
+    if (original)
+    {
+        duplicate = d_string_dup(original);
+
+        if (duplicate)
+        {
+            group->elements[child_idx++] = D_ASSERT_EQUAL(
+                "long_dup_size",
+                duplicate->size, 500,
+                "duplicate of 500-char string should have size 500"
+            );
+
+            d_string_free(duplicate);
+        }
+        else
+        {
+            group->elements[child_idx++] = D_ASSERT_TRUE("long_skip", false, "skip");
+        }
+
+        d_string_free(original);
+    }
+    else
+    {
+        group->elements[child_idx++] = D_ASSERT_TRUE("long_skip", false, "skip");
+    }
+
+    // test 9: duplicate string with special characters
+    original = d_string_new_from_cstr("Tab\tNewline\nCR\r");
+
+    if (original)
+    {
+        duplicate = d_string_dup(original);
+
+        if (duplicate)
+        {
+            group->elements[child_idx++] = D_ASSERT_STR_EQUAL(
+                "special_chars_dup",
+                duplicate->text, "Tab\tNewline\nCR\r",
+                "special characters should be duplicated correctly"
+            );
+
+            d_string_free(duplicate);
+        }
+        else
+        {
+            group->elements[child_idx++] = D_ASSERT_TRUE("special_skip", false, "skip");
+        }
+
+        d_string_free(original);
+    }
+    else
+    {
+        group->elements[child_idx++] = D_ASSERT_TRUE("special_skip", false, "skip");
+    }
 
     return group;
 }
 
 
 /******************************************************************************
- * CASE-INSENSITIVE COMPARISON TESTS
- *****************************************************************************/
+* d_tests_sa_dstring_ndup
+******************************************************************************/
 
 /*
-d_tests_dstring_strcasecmp
-  Tests d_strcasecmp for case-insensitive comparison.
-  Tests the following:
-  - returns 0 for identical strings
-  - returns 0 for case-different strings
-  - returns negative for less-than
-  - returns positive for greater-than
-  - handles NULL inputs
-  - handles empty strings
-  - handles mixed alphanumeric
+d_tests_sa_dstring_ndup
+  Tests d_string_ndup() which creates a duplicate of at most n characters.
+
+Test cases:
+  1.  NULL string returns NULL
+  2.  n = 0 returns empty string
+  3.  n less than string length
+  4.  n equal to string length
+  5.  n greater than string length
+  6.  Duplicate is null-terminated
+  7.  Original unchanged
+
+Parameter(s):
+  (none)
+Return:
+  Test object containing all assertion results.
 */
 struct d_test_object*
-d_tests_dstring_strcasecmp
+d_tests_sa_dstring_ndup
 (
     void
 )
 {
     struct d_test_object* group;
-    int                   result;
-    bool                  test_identical;
-    bool                  test_case_diff;
-    bool                  test_less_than;
-    bool                  test_greater_than;
-    bool                  test_null_handling;
-    bool                  test_empty_strings;
-    bool                  test_mixed_alnum;
-    size_t                idx;
+    struct d_string*      original;
+    struct d_string*      duplicate;
+    size_t                child_idx;
 
-    // test 1: identical strings
-    result = d_strcasecmp("hello", "hello");
-    test_identical = (result == 0);
-
-    // test 2: case-different but equal
-    result = d_strcasecmp("HeLLo", "hEllO");
-    test_case_diff = (result == 0);
-
-    // test 3: less than
-    result = d_strcasecmp("apple", "banana");
-    test_less_than = (result < 0);
-
-    // test 4: greater than
-    result = d_strcasecmp("zebra", "aardvark");
-    test_greater_than = (result > 0);
-
-    // test 5: NULL handling
-    result = d_strcasecmp(NULL, "test");
-    int result2 = d_strcasecmp("test", NULL);
-    int result3 = d_strcasecmp(NULL, NULL);
-    test_null_handling = (result != 0 || result2 != 0 || result3 == 0);
-
-    // test 6: empty strings
-    result = d_strcasecmp("", "");
-    int result4 = d_strcasecmp("something", "");
-    int result5 = d_strcasecmp("", "something");
-    test_empty_strings = (result == 0) && (result4 > 0) && (result5 < 0);
-
-    // test 7: mixed alphanumeric
-    result = d_strcasecmp("Test123", "TEST123");
-    test_mixed_alnum = (result == 0);
-
-    // build result tree
-    group = d_test_object_new_interior("d_strcasecmp", 7);
+    group     = d_test_object_new_interior("d_string_ndup", 10);
+    child_idx = 0;
 
     if (!group)
     {
         return NULL;
     }
 
-    idx = 0;
-    group->elements[idx++] = D_ASSERT_TRUE("identical",
-                                           test_identical,
-                                           "returns 0 for identical strings");
-    group->elements[idx++] = D_ASSERT_TRUE("case_diff",
-                                           test_case_diff,
-                                           "returns 0 for case-different strings");
-    group->elements[idx++] = D_ASSERT_TRUE("less_than",
-                                           test_less_than,
-                                           "returns negative for less-than");
-    group->elements[idx++] = D_ASSERT_TRUE("greater_than",
-                                           test_greater_than,
-                                           "returns positive for greater-than");
-    group->elements[idx++] = D_ASSERT_TRUE("null_handling",
-                                           test_null_handling,
-                                           "handles NULL inputs");
-    group->elements[idx++] = D_ASSERT_TRUE("empty_strings",
-                                           test_empty_strings,
-                                           "handles empty strings");
-    group->elements[idx++] = D_ASSERT_TRUE("mixed_alnum",
-                                           test_mixed_alnum,
-                                           "handles mixed alphanumeric");
+    // test 1: NULL string returns NULL
+    duplicate = d_string_ndup(NULL, 5);
+    group->elements[child_idx++] = D_ASSERT_NULL(
+        "null_returns_null",
+        duplicate,
+        "d_string_ndup(NULL, ...) should return NULL"
+    );
+
+    // test 2: n = 0 returns empty string
+    original = d_string_new_from_cstr("Hello");
+
+    if (original)
+    {
+        duplicate = d_string_ndup(original, 0);
+
+        group->elements[child_idx++] = D_ASSERT_NOT_NULL(
+            "n_0_not_null",
+            duplicate,
+            "d_string_ndup(..., 0) should return non-NULL"
+        );
+
+        if (duplicate)
+        {
+            group->elements[child_idx++] = D_ASSERT_EQUAL(
+                "n_0_size",
+                duplicate->size, 0,
+                "n = 0 should return empty string"
+            );
+
+            d_string_free(duplicate);
+        }
+        else
+        {
+            group->elements[child_idx++] = D_ASSERT_TRUE("n0_size_skip", false, "skip");
+        }
+
+        d_string_free(original);
+    }
+    else
+    {
+        group->elements[child_idx++] = D_ASSERT_TRUE("n0_skip", false, "skip");
+        group->elements[child_idx++] = D_ASSERT_TRUE("n0_size_skip", false, "skip");
+    }
+
+    // test 3: n less than string length
+    original = d_string_new_from_cstr("Hello World");
+
+    if (original)
+    {
+        duplicate = d_string_ndup(original, 5);
+
+        if (duplicate)
+        {
+            group->elements[child_idx++] = D_ASSERT_STR_EQUAL(
+                "n_less_content",
+                duplicate->text, "Hello",
+                "should duplicate only first 5 characters"
+            );
+
+            group->elements[child_idx++] = D_ASSERT_EQUAL(
+                "n_less_size",
+                duplicate->size, 5,
+                "size should be 5"
+            );
+
+            d_string_free(duplicate);
+        }
+        else
+        {
+            group->elements[child_idx++] = D_ASSERT_TRUE("n_less_skip", false, "skip");
+            group->elements[child_idx++] = D_ASSERT_TRUE("n_less_sz_skip", false, "skip");
+        }
+
+        d_string_free(original);
+    }
+    else
+    {
+        group->elements[child_idx++] = D_ASSERT_TRUE("n_less_skip", false, "skip");
+        group->elements[child_idx++] = D_ASSERT_TRUE("n_less_sz_skip", false, "skip");
+    }
+
+    // test 4: n equal to string length
+    original = d_string_new_from_cstr("Exact");
+
+    if (original)
+    {
+        duplicate = d_string_ndup(original, 5);
+
+        if (duplicate)
+        {
+            group->elements[child_idx++] = D_ASSERT_STR_EQUAL(
+                "n_equal_content",
+                duplicate->text, "Exact",
+                "should duplicate entire string"
+            );
+
+            d_string_free(duplicate);
+        }
+        else
+        {
+            group->elements[child_idx++] = D_ASSERT_TRUE("n_equal_skip", false, "skip");
+        }
+
+        d_string_free(original);
+    }
+    else
+    {
+        group->elements[child_idx++] = D_ASSERT_TRUE("n_equal_skip", false, "skip");
+    }
+
+    // test 5: n greater than string length
+    original = d_string_new_from_cstr("Short");
+
+    if (original)
+    {
+        duplicate = d_string_ndup(original, 100);
+
+        if (duplicate)
+        {
+            group->elements[child_idx++] = D_ASSERT_STR_EQUAL(
+                "n_greater_content",
+                duplicate->text, "Short",
+                "should duplicate entire string (capped at length)"
+            );
+
+            group->elements[child_idx++] = D_ASSERT_EQUAL(
+                "n_greater_size",
+                duplicate->size, 5,
+                "size should be original length, not n"
+            );
+
+            d_string_free(duplicate);
+        }
+        else
+        {
+            group->elements[child_idx++] = D_ASSERT_TRUE("n_greater_skip", false, "skip");
+            group->elements[child_idx++] = D_ASSERT_TRUE("n_greater_sz_skip", false, "skip");
+        }
+
+        d_string_free(original);
+    }
+    else
+    {
+        group->elements[child_idx++] = D_ASSERT_TRUE("n_greater_skip", false, "skip");
+        group->elements[child_idx++] = D_ASSERT_TRUE("n_greater_sz_skip", false, "skip");
+    }
+
+    // test 6: original unchanged after ndup
+    original = d_string_new_from_cstr("Original");
+
+    if (original)
+    {
+        duplicate = d_string_ndup(original, 4);
+
+        group->elements[child_idx++] = D_ASSERT_STR_EQUAL(
+            "original_unchanged",
+            original->text, "Original",
+            "original should be unchanged after ndup"
+        );
+
+        if (duplicate)
+        {
+            d_string_free(duplicate);
+        }
+
+        d_string_free(original);
+    }
+    else
+    {
+        group->elements[child_idx++] = D_ASSERT_TRUE("unchanged_skip", false, "skip");
+    }
 
     return group;
 }
 
 
+/******************************************************************************
+* d_tests_sa_dstring_substr
+******************************************************************************/
+
 /*
-d_tests_dstring_strncasecmp
-  Tests d_strncasecmp for counted case-insensitive comparison.
-  Tests the following:
-  - compares n characters correctly
-  - ignores differences beyond n
-  - handles n larger than strings
-  - returns 0 for zero count
-  - handles NULL inputs
-  - case-insensitive within n chars
+d_tests_sa_dstring_substr
+  Tests d_string_substr() which extracts a substring from a d_string.
+
+Test cases:
+  1.  NULL string returns NULL
+  2.  Start beyond string length returns empty
+  3.  Start at 0, length 0 returns empty
+  4.  Normal substring extraction
+  5.  Start at middle, extract to end
+  6.  Length exceeds available characters
+  7.  Extract single character
+  8.  Extract entire string
+  9.  Original unchanged
+
+Parameter(s):
+  (none)
+Return:
+  Test object containing all assertion results.
 */
 struct d_test_object*
-d_tests_dstring_strncasecmp
+d_tests_sa_dstring_substr
 (
     void
 )
 {
     struct d_test_object* group;
-    int                   result;
-    bool                  test_n_chars;
-    bool                  test_ignore_beyond_n;
-    bool                  test_n_larger;
-    bool                  test_zero_count;
-    bool                  test_null_handling;
-    bool                  test_case_within_n;
-    size_t                idx;
+    struct d_string*      original;
+    struct d_string*      substring;
+    size_t                child_idx;
 
-    // test 1: compare first n characters
-    result = d_strncasecmp("Hello World", "Hello There", 5);
-    test_n_chars = (result == 0);
-
-    // test 2: ignores differences beyond n
-    result = d_strncasecmp("TestABC", "TestXYZ", 4);
-    test_ignore_beyond_n = (result == 0);
-
-    // test 3: n larger than strings
-    result = d_strncasecmp("short", "SHORT", 100);
-    test_n_larger = (result == 0);
-
-    // test 4: zero count
-    result = d_strncasecmp("different", "strings", 0);
-    test_zero_count = (result == 0);
-
-    // test 5: NULL handling
-    result = d_strncasecmp(NULL, "test", 4);
-    int result2 = d_strncasecmp("test", NULL, 4);
-    test_null_handling = (result != 0 || result2 != 0);
-
-    // test 6: case-insensitive within n
-    result = d_strncasecmp("ABCdef", "abcDEF", 6);
-    test_case_within_n = (result == 0);
-
-    // build result tree
-    group = d_test_object_new_interior("d_strncasecmp", 6);
+    group     = d_test_object_new_interior("d_string_substr", 12);
+    child_idx = 0;
 
     if (!group)
     {
         return NULL;
     }
 
-    idx = 0;
-    group->elements[idx++] = D_ASSERT_TRUE("n_chars",
-                                           test_n_chars,
-                                           "compares n characters correctly");
-    group->elements[idx++] = D_ASSERT_TRUE("ignore_beyond_n",
-                                           test_ignore_beyond_n,
-                                           "ignores differences beyond n");
-    group->elements[idx++] = D_ASSERT_TRUE("n_larger",
-                                           test_n_larger,
-                                           "handles n larger than strings");
-    group->elements[idx++] = D_ASSERT_TRUE("zero_count",
-                                           test_zero_count,
-                                           "returns 0 for zero count");
-    group->elements[idx++] = D_ASSERT_TRUE("null_handling",
-                                           test_null_handling,
-                                           "handles NULL inputs");
-    group->elements[idx++] = D_ASSERT_TRUE("case_within_n",
-                                           test_case_within_n,
-                                           "case-insensitive within n chars");
+    // test 1: NULL string returns NULL
+    substring = d_string_substr(NULL, 0, 5);
+    group->elements[child_idx++] = D_ASSERT_NULL(
+        "null_returns_null",
+        substring,
+        "d_string_substr(NULL, ...) should return NULL"
+    );
+
+    // test 2: start beyond string length
+    original = d_string_new_from_cstr("Hello");
+
+    if (original)
+    {
+        substring = d_string_substr(original, 100, 5);
+
+        if (substring)
+        {
+            group->elements[child_idx++] = D_ASSERT_EQUAL(
+                "start_beyond_empty",
+                substring->size, 0,
+                "start beyond length should return empty string"
+            );
+
+            d_string_free(substring);
+        }
+        else
+        {
+            // could also return NULL for invalid range
+            group->elements[child_idx++] = D_ASSERT_TRUE(
+                "start_beyond_null_ok",
+                true,
+                "start beyond length may return NULL"
+            );
+        }
+
+        d_string_free(original);
+    }
+    else
+    {
+        group->elements[child_idx++] = D_ASSERT_TRUE("beyond_skip", false, "skip");
+    }
+
+    // test 3: start at 0, length 0 returns empty
+    original = d_string_new_from_cstr("Hello");
+
+    if (original)
+    {
+        substring = d_string_substr(original, 0, 0);
+
+        if (substring)
+        {
+            group->elements[child_idx++] = D_ASSERT_EQUAL(
+                "length_0_empty",
+                substring->size, 0,
+                "length 0 should return empty string"
+            );
+
+            d_string_free(substring);
+        }
+        else
+        {
+            group->elements[child_idx++] = D_ASSERT_TRUE(
+                "length_0_null_ok", true, "length 0 may return NULL"
+            );
+        }
+
+        d_string_free(original);
+    }
+    else
+    {
+        group->elements[child_idx++] = D_ASSERT_TRUE("len0_skip", false, "skip");
+    }
+
+    // test 4: normal substring extraction
+    original = d_string_new_from_cstr("Hello World");
+
+    if (original)
+    {
+        substring = d_string_substr(original, 6, 5);
+
+        if (substring)
+        {
+            group->elements[child_idx++] = D_ASSERT_STR_EQUAL(
+                "normal_substr_content",
+                substring->text, "World",
+                "substring from position 6, length 5 should be 'World'"
+            );
+
+            group->elements[child_idx++] = D_ASSERT_EQUAL(
+                "normal_substr_size",
+                substring->size, 5,
+                "substring size should be 5"
+            );
+
+            d_string_free(substring);
+        }
+        else
+        {
+            group->elements[child_idx++] = D_ASSERT_TRUE("normal_skip", false, "skip");
+            group->elements[child_idx++] = D_ASSERT_TRUE("normal_sz_skip", false, "skip");
+        }
+
+        d_string_free(original);
+    }
+    else
+    {
+        group->elements[child_idx++] = D_ASSERT_TRUE("normal_skip", false, "skip");
+        group->elements[child_idx++] = D_ASSERT_TRUE("normal_sz_skip", false, "skip");
+    }
+
+    // test 5: start at middle, extract to end
+    original = d_string_new_from_cstr("ABCDEFGHIJ");
+
+    if (original)
+    {
+        // large length to extract to end
+        substring = d_string_substr(original, 5, 100);
+
+        if (substring)
+        {
+            group->elements[child_idx++] = D_ASSERT_STR_EQUAL(
+                "extract_to_end",
+                substring->text, "FGHIJ",
+                "should extract from position 5 to end"
+            );
+
+            d_string_free(substring);
+        }
+        else
+        {
+            group->elements[child_idx++] = D_ASSERT_TRUE("to_end_skip", false, "skip");
+        }
+
+        d_string_free(original);
+    }
+    else
+    {
+        group->elements[child_idx++] = D_ASSERT_TRUE("to_end_skip", false, "skip");
+    }
+
+    // test 6: extract single character
+    original = d_string_new_from_cstr("Testing");
+
+    if (original)
+    {
+        substring = d_string_substr(original, 3, 1);
+
+        if (substring)
+        {
+            group->elements[child_idx++] = D_ASSERT_STR_EQUAL(
+                "single_char_substr",
+                substring->text, "t",
+                "single character extraction"
+            );
+
+            d_string_free(substring);
+        }
+        else
+        {
+            group->elements[child_idx++] = D_ASSERT_TRUE("single_skip", false, "skip");
+        }
+
+        d_string_free(original);
+    }
+    else
+    {
+        group->elements[child_idx++] = D_ASSERT_TRUE("single_skip", false, "skip");
+    }
+
+    // test 7: extract entire string
+    original = d_string_new_from_cstr("Complete");
+
+    if (original)
+    {
+        substring = d_string_substr(original, 0, 8);
+
+        if (substring)
+        {
+            group->elements[child_idx++] = D_ASSERT_STR_EQUAL(
+                "entire_string",
+                substring->text, "Complete",
+                "extracting entire string"
+            );
+
+            d_string_free(substring);
+        }
+        else
+        {
+            group->elements[child_idx++] = D_ASSERT_TRUE("entire_skip", false, "skip");
+        }
+
+        d_string_free(original);
+    }
+    else
+    {
+        group->elements[child_idx++] = D_ASSERT_TRUE("entire_skip", false, "skip");
+    }
+
+    // test 8: original unchanged after substr
+    original = d_string_new_from_cstr("Unchanged");
+
+    if (original)
+    {
+        substring = d_string_substr(original, 2, 3);
+
+        group->elements[child_idx++] = D_ASSERT_STR_EQUAL(
+            "original_preserved",
+            original->text, "Unchanged",
+            "original should be unchanged after substr"
+        );
+
+        if (substring)
+        {
+            d_string_free(substring);
+        }
+
+        d_string_free(original);
+    }
+    else
+    {
+        group->elements[child_idx++] = D_ASSERT_TRUE("preserved_skip", false, "skip");
+    }
+
+    // test 9: substring is independent copy
+    original = d_string_new_from_cstr("Independent");
+
+    if (original)
+    {
+        substring = d_string_substr(original, 0, 4);
+
+        if (substring)
+        {
+            group->elements[child_idx++] = D_ASSERT_TRUE(
+                "substr_independent",
+                substring->text != original->text,
+                "substring should be at different memory address"
+            );
+
+            d_string_free(substring);
+        }
+        else
+        {
+            group->elements[child_idx++] = D_ASSERT_TRUE("ind_skip", false, "skip");
+        }
+
+        d_string_free(original);
+    }
+    else
+    {
+        group->elements[child_idx++] = D_ASSERT_TRUE("ind_skip", false, "skip");
+    }
+
+    // test 10: extract from empty string
+    original = d_string_new();
+
+    if (original)
+    {
+        substring = d_string_substr(original, 0, 5);
+
+        if (substring)
+        {
+            group->elements[child_idx++] = D_ASSERT_EQUAL(
+                "empty_source_substr",
+                substring->size, 0,
+                "substring of empty string should be empty"
+            );
+
+            d_string_free(substring);
+        }
+        else
+        {
+            group->elements[child_idx++] = D_ASSERT_TRUE(
+                "empty_source_null_ok", true, "may return NULL for empty"
+            );
+        }
+
+        d_string_free(original);
+    }
+    else
+    {
+        group->elements[child_idx++] = D_ASSERT_TRUE("empty_src_skip", false, "skip");
+    }
 
     return group;
 }
 
 
+/******************************************************************************
+* d_tests_sa_dstring_dup_all
+******************************************************************************/
+
 /*
-d_tests_dstring_case_comparison_all
-  Runs all case-insensitive comparison tests.
-  Tests the following:
-  - d_strcasecmp
-  - d_strncasecmp
+d_tests_sa_dstring_dup_all
+  Runs all duplication tests and returns an aggregate test object containing
+  all results.
+
+Parameter(s):
+  (none)
+Return:
+  Test object containing all duplication test results.
 */
 struct d_test_object*
-d_tests_dstring_case_comparison_all
+d_tests_sa_dstring_dup_all
 (
     void
 )
 {
     struct d_test_object* group;
-    size_t                idx;
+    size_t                child_idx;
 
-    group = d_test_object_new_interior("Case-Insensitive Comparison", 2);
+    group     = d_test_object_new_interior("d_string Duplication Functions", 3);
+    child_idx = 0;
 
     if (!group)
     {
         return NULL;
     }
 
-    idx = 0;
-    group->elements[idx++] = d_tests_dstring_strcasecmp();
-    group->elements[idx++] = d_tests_dstring_strncasecmp();
+    // run all duplication tests
+    group->elements[child_idx++] = d_tests_sa_dstring_dup();
+    group->elements[child_idx++] = d_tests_sa_dstring_ndup();
+    group->elements[child_idx++] = d_tests_sa_dstring_substr();
 
     return group;
 }
-
-

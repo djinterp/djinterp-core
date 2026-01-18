@@ -1,377 +1,392 @@
 /******************************************************************************
-* djinterp [test]                                        dstring_tests_sa_error.c
+* djinterp [test]                                          dstring_tests_error.c
 *
-*   Tests for error handling (strerror_r), NULL parameter handling, and 
-* boundary conditions.
+*   Unit tests for d_string error functions:
+*     - d_string_error
+*     - d_string_error_r
 *
-*
-* path:      \src\test\dstring_tests_sa_error.c
+* path:      \src\test\dstring_tests_error.c
 * link:      TBA
 * author(s): Samuel 'teer' Neal-Blim                          date: 2025.12.30
 ******************************************************************************/
-#include ".\dstring_tests_sa.h"
+
+#include "..\tests\dstring_tests_sa.h"
+
+#include <errno.h>
 
 
 /******************************************************************************
- * ERROR HANDLING TESTS
- *****************************************************************************/
+* d_tests_sa_dstring_error
+******************************************************************************/
 
 /*
-d_tests_dstring_strerror_r
-  Tests d_strerror_r for thread-safe error strings.
-  Tests the following:
-  - returns valid error string for known error
-  - handles insufficient buffer size
-  - handles unknown error codes
-  - null terminates result
-  - handles NULL buffer
-  - handles zero buffer size
+d_tests_sa_dstring_error
+  Tests d_string_error() which returns a d_string containing the error message
+  for the given error number.
+
+Test cases:
+  1.  Known error code (EINVAL)
+  2.  Known error code (ENOMEM)
+  3.  Known error code (ENOENT)
+  4.  Error code 0 (success)
+  5.  Unknown/invalid error code
+  6.  Returned string is non-empty for known errors
+  7.  Multiple calls return independent strings
+
+Parameter(s):
+  (none)
+Return:
+  Test object containing all assertion results.
 */
 struct d_test_object*
-d_tests_dstring_strerror_r
+d_tests_sa_dstring_error
 (
     void
 )
 {
     struct d_test_object* group;
-    char                  buffer[256];
-    char                  small_buffer[10];
-    int                   result;
-    bool                  test_known_error;
-    bool                  test_insufficient_buffer;
-    bool                  test_unknown_error;
-    bool                  test_null_terminated;
-    bool                  test_null_buffer;
-    bool                  test_zero_size;
-    size_t                idx;
+    struct d_string*      error_str;
+    struct d_string*      error_str2;
+    size_t                child_idx;
 
-    // test 1: known error code
-    memset(buffer, 0, sizeof(buffer));
-    result = d_strerror_r(EINVAL, buffer, sizeof(buffer));
-    test_known_error = (result == 0) && (strlen(buffer) > 0);
-
-    // test 2: insufficient buffer
-    memset(small_buffer, 0, sizeof(small_buffer));
-    result = d_strerror_r(EINVAL, small_buffer, sizeof(small_buffer));
-    test_insufficient_buffer = (result == 0 || result == ERANGE);
-
-    // test 3: unknown error code
-    memset(buffer, 0, sizeof(buffer));
-    result = d_strerror_r(99999, buffer, sizeof(buffer));
-    test_unknown_error = (strlen(buffer) > 0);  // should still provide some message
-
-    // test 4: null terminated
-    memset(buffer, 'X', sizeof(buffer));
-    result = d_strerror_r(EINVAL, buffer, sizeof(buffer));
-    test_null_terminated = (buffer[strlen(buffer)] == '\0');
-
-    // test 5: NULL buffer
-    result = d_strerror_r(EINVAL, NULL, sizeof(buffer));
-    test_null_buffer = (result != 0);
-
-    // test 6: zero buffer size
-    result = d_strerror_r(EINVAL, buffer, 0);
-    test_zero_size = (result != 0);
-
-    // build result tree
-    group = d_test_object_new_interior("d_strerror_r", 6);
+    group     = d_test_object_new_interior("d_string_error", 9);
+    child_idx = 0;
 
     if (!group)
     {
         return NULL;
     }
 
-    idx = 0;
-    group->elements[idx++] = D_ASSERT_TRUE("known_error",
-                                           test_known_error,
-                                           "returns valid string for known error");
-    group->elements[idx++] = D_ASSERT_TRUE("insufficient_buffer",
-                                           test_insufficient_buffer,
-                                           "handles insufficient buffer size");
-    group->elements[idx++] = D_ASSERT_TRUE("unknown_error",
-                                           test_unknown_error,
-                                           "handles unknown error codes");
-    group->elements[idx++] = D_ASSERT_TRUE("null_terminated",
-                                           test_null_terminated,
-                                           "null terminates result");
-    group->elements[idx++] = D_ASSERT_TRUE("null_buffer",
-                                           test_null_buffer,
-                                           "handles NULL buffer");
-    group->elements[idx++] = D_ASSERT_TRUE("zero_size",
-                                           test_zero_size,
-                                           "handles zero buffer size");
+    // test 1: EINVAL - known error code
+    error_str = d_string_error(EINVAL);
 
-    return group;
-}
+    group->elements[child_idx++] = D_ASSERT_NOT_NULL(
+        "einval_not_null",
+        error_str,
+        "d_string_error(EINVAL) should return non-NULL"
+    );
 
-
-/*
-d_tests_dstring_error_handling_all
-  Runs all error handling tests.
-  Tests the following:
-  - d_strerror_r
-*/
-struct d_test_object*
-d_tests_dstring_error_handling_all
-(
-    void
-)
-{
-    struct d_test_object* group;
-    size_t                idx;
-
-    group = d_test_object_new_interior("Error Handling", 1);
-
-    if (!group)
+    if (error_str)
     {
-        return NULL;
+        group->elements[child_idx++] = D_ASSERT_TRUE(
+            "einval_not_empty",
+            error_str->size > 0,
+            "error message for EINVAL should not be empty"
+        );
+
+        d_string_free(error_str);
+    }
+    else
+    {
+        group->elements[child_idx++] = D_ASSERT_TRUE("einval_skip", false, "skip");
     }
 
-    idx = 0;
-    group->elements[idx++] = d_tests_dstring_strerror_r();
+    // test 2: ENOMEM - another known error
+    error_str = d_string_error(ENOMEM);
 
-    return group;
-}
+    group->elements[child_idx++] = D_ASSERT_NOT_NULL(
+        "enomem_not_null",
+        error_str,
+        "d_string_error(ENOMEM) should return non-NULL"
+    );
 
-
-/******************************************************************************
- * NULL PARAMETER TESTS
- *****************************************************************************/
-
-/*
-d_tests_dstring_null_params_all
-  Tests NULL parameter handling across all functions.
-  Tests the following:
-  - all functions handle NULL parameters gracefully
-  - appropriate error codes returned
-  - no crashes or undefined behavior
-*/
-struct d_test_object*
-d_tests_dstring_null_params_all
-(
-    void
-)
-{
-    struct d_test_object* group;
-    char                  buffer[256];
-    char*                 saveptr;
-    int                   result;
-    bool                  test_strcpy_s;
-    bool                  test_strncpy_s;
-    bool                  test_strcat_s;
-    bool                  test_strncat_s;
-    bool                  test_strdup;
-    bool                  test_strndup;
-    bool                  test_strcasecmp;
-    bool                  test_strncasecmp;
-    bool                  test_strtok_r;
-    bool                  test_strnlen;
-    bool                  test_strcasestr;
-    bool                  test_strlwr;
-    bool                  test_strupr;
-    bool                  test_strrev;
-    bool                  test_strchrnul;
-    size_t                idx;
-
-    // test NULL parameters for each function
-    test_strcpy_s = (d_strcpy_s(NULL, 10, "test") != 0) &&
-                   (d_strcpy_s(buffer, sizeof(buffer), NULL) != 0);
-
-    test_strncpy_s = (d_strncpy_s(NULL, 10, "test", 4) != 0) &&
-                     (d_strncpy_s(buffer, sizeof(buffer), NULL, 4) != 0);
-
-    test_strcat_s = (d_strcat_s(NULL, 10, "test") != 0) &&
-                    (d_strcat_s(buffer, sizeof(buffer), NULL) != 0);
-
-    test_strncat_s = (d_strncat_s(NULL, 10, "test", 4) != 0) &&
-                     (d_strncat_s(buffer, sizeof(buffer), NULL, 4) != 0);
-
-    test_strdup = (d_strdup(NULL) == NULL);
-
-    test_strndup = (d_strndup(NULL, 10) == NULL);
-
-    test_strcasecmp = true;  // implementation-dependent behavior
-
-    test_strncasecmp = true;  // implementation-dependent behavior
-
-    test_strtok_r = (d_strtok_r(NULL, ",", NULL) == NULL);
-
-    test_strnlen = (d_strnlen(NULL, 100) == 0);
-
-    test_strcasestr = (d_strcasestr(NULL, "test") == NULL) &&
-                     (d_strcasestr("test", NULL) == NULL);
-
-    test_strlwr = (d_strlwr(NULL) == NULL);
-
-    test_strupr = (d_strupr(NULL) == NULL);
-
-    test_strrev = (d_strrev(NULL) == NULL);
-
-    test_strchrnul = (d_strchrnul(NULL, 'a') == NULL);
-
-    // build result tree
-    group = d_test_object_new_interior("NULL Parameter Handling", 15);
-
-    if (!group)
+    if (error_str)
     {
-        return NULL;
+        group->elements[child_idx++] = D_ASSERT_TRUE(
+            "enomem_not_empty",
+            error_str->size > 0,
+            "error message for ENOMEM should not be empty"
+        );
+
+        d_string_free(error_str);
+    }
+    else
+    {
+        group->elements[child_idx++] = D_ASSERT_TRUE("enomem_skip", false, "skip");
     }
 
-    idx = 0;
-    group->elements[idx++] = D_ASSERT_TRUE("strcpy_s_null",
-                                           test_strcpy_s,
-                                           "d_strcpy_s handles NULL parameters");
-    group->elements[idx++] = D_ASSERT_TRUE("strncpy_s_null",
-                                           test_strncpy_s,
-                                           "d_strncpy_s handles NULL parameters");
-    group->elements[idx++] = D_ASSERT_TRUE("strcat_s_null",
-                                           test_strcat_s,
-                                           "d_strcat_s handles NULL parameters");
-    group->elements[idx++] = D_ASSERT_TRUE("strncat_s_null",
-                                           test_strncat_s,
-                                           "d_strncat_s handles NULL parameters");
-    group->elements[idx++] = D_ASSERT_TRUE("strdup_null",
-                                           test_strdup,
-                                           "d_strdup handles NULL parameter");
-    group->elements[idx++] = D_ASSERT_TRUE("strndup_null",
-                                           test_strndup,
-                                           "d_strndup handles NULL parameter");
-    group->elements[idx++] = D_ASSERT_TRUE("strcasecmp_null",
-                                           test_strcasecmp,
-                                           "d_strcasecmp handles NULL parameters");
-    group->elements[idx++] = D_ASSERT_TRUE("strncasecmp_null",
-                                           test_strncasecmp,
-                                           "d_strncasecmp handles NULL parameters");
-    group->elements[idx++] = D_ASSERT_TRUE("strtok_r_null",
-                                           test_strtok_r,
-                                           "d_strtok_r handles NULL parameters");
-    group->elements[idx++] = D_ASSERT_TRUE("strnlen_null",
-                                           test_strnlen,
-                                           "d_strnlen handles NULL parameter");
-    group->elements[idx++] = D_ASSERT_TRUE("strcasestr_null",
-                                           test_strcasestr,
-                                           "d_strcasestr handles NULL parameters");
-    group->elements[idx++] = D_ASSERT_TRUE("strlwr_null",
-                                           test_strlwr,
-                                           "d_strlwr handles NULL parameter");
-    group->elements[idx++] = D_ASSERT_TRUE("strupr_null",
-                                           test_strupr,
-                                           "d_strupr handles NULL parameter");
-    group->elements[idx++] = D_ASSERT_TRUE("strrev_null",
-                                           test_strrev,
-                                           "d_strrev handles NULL parameter");
-    group->elements[idx++] = D_ASSERT_TRUE("strchrnul_null",
-                                           test_strchrnul,
-                                           "d_strchrnul handles NULL parameter");
+    // test 3: ENOENT - file not found
+    error_str = d_string_error(ENOENT);
+
+    group->elements[child_idx++] = D_ASSERT_NOT_NULL(
+        "enoent_not_null",
+        error_str,
+        "d_string_error(ENOENT) should return non-NULL"
+    );
+
+    if (error_str)
+    {
+        d_string_free(error_str);
+    }
+
+    // test 4: error code 0 (success - may or may not have message)
+    error_str = d_string_error(0);
+
+    group->elements[child_idx++] = D_ASSERT_NOT_NULL(
+        "zero_not_null",
+        error_str,
+        "d_string_error(0) should return non-NULL"
+    );
+
+    if (error_str)
+    {
+        d_string_free(error_str);
+    }
+
+    // test 5: unknown error code
+    error_str = d_string_error(99999);
+
+    group->elements[child_idx++] = D_ASSERT_NOT_NULL(
+        "unknown_not_null",
+        error_str,
+        "unknown error should still return a string"
+    );
+
+    if (error_str)
+    {
+        // should have some kind of message, even if generic
+        group->elements[child_idx++] = D_ASSERT_TRUE(
+            "unknown_has_message",
+            error_str->size > 0,
+            "unknown error should have some message"
+        );
+
+        d_string_free(error_str);
+    }
+    else
+    {
+        group->elements[child_idx++] = D_ASSERT_TRUE("unknown_skip", false, "skip");
+    }
+
+    // test 6: multiple calls return independent strings
+    error_str  = d_string_error(EINVAL);
+    error_str2 = d_string_error(ENOMEM);
+
+    if (error_str && error_str2)
+    {
+        group->elements[child_idx++] = D_ASSERT_TRUE(
+            "independent_strings",
+            error_str->text != error_str2->text,
+            "multiple calls should return independent strings"
+        );
+
+        d_string_free(error_str);
+        d_string_free(error_str2);
+    }
+    else
+    {
+        if (error_str) d_string_free(error_str);
+        if (error_str2) d_string_free(error_str2);
+        group->elements[child_idx++] = D_ASSERT_TRUE("ind_skip", false, "skip");
+    }
 
     return group;
 }
 
 
 /******************************************************************************
- * BOUNDARY CONDITION TESTS
- *****************************************************************************/
+* d_tests_sa_dstring_error_r
+******************************************************************************/
 
 /*
-d_tests_dstring_boundary_conditions_all
-  Tests boundary conditions across all functions.
-  Tests the following:
-  - zero-length buffers
-  - single-character operations
-  - maximum size operations
-  - off-by-one scenarios
+d_tests_sa_dstring_error_r
+  Tests d_string_error_r() which is the reentrant/thread-safe version that
+  copies the error message to a provided d_string.
+
+Test cases:
+  1.  NULL destination returns error
+  2.  Known error code (EINVAL)
+  3.  Known error code (ENOMEM)
+  4.  Error code 0
+  5.  Unknown error code
+  6.  Destination is modified in place
+  7.  Previous content replaced
+
+Parameter(s):
+  (none)
+Return:
+  Test object containing all assertion results.
 */
 struct d_test_object*
-d_tests_dstring_boundary_conditions_all
+d_tests_sa_dstring_error_r
 (
     void
 )
 {
     struct d_test_object* group;
-    char                  one_char[2];
-    char                  zero_buf[1];
-    char                  exact_fit[6];  // for "Hello" + null
-    char                  large_buffer[1024];
-    char*                 result_ptr;
+    struct d_string*      dest;
+    size_t                child_idx;
     int                   result;
-    bool                  test_zero_length;
-    bool                  test_single_char;
-    bool                  test_exact_boundary;
-    bool                  test_off_by_one;
-    bool                  test_max_size;
-    bool                  test_empty_operations;
-    size_t                idx;
 
-    // test 1: zero-length buffer operations
-    zero_buf[0] = '\0';
-    result = d_strcpy_s(zero_buf, 0, "test");
-    test_zero_length = (result != 0);
-
-    // test 2: single character operations
-    one_char[0] = 'A';
-    one_char[1] = '\0';
-    result_ptr = d_strrev(one_char);
-    test_single_char = (result_ptr == one_char) && (one_char[0] == 'A');
-
-    // test 3: exact boundary fit
-    result = d_strcpy_s(exact_fit, sizeof(exact_fit), "Hello");
-    test_exact_boundary = (result == 0) && 
-                         (strcmp(exact_fit, "Hello") == 0) &&
-                         (strlen(exact_fit) == 5);
-
-    // test 4: off-by-one scenarios
-    result = d_strcpy_s(exact_fit, sizeof(exact_fit), "Hello!");  // one too many
-    test_off_by_one = (result != 0);
-
-    // test 5: maximum size operations
-    memset(large_buffer, 'X', sizeof(large_buffer) - 1);
-    large_buffer[sizeof(large_buffer) - 1] = '\0';
-    size_t len = d_strnlen(large_buffer, SIZE_MAX);
-    test_max_size = (len == sizeof(large_buffer) - 1);
-
-    // test 6: empty string operations
-    char empty[] = "";
-    result_ptr = d_strrev(empty);
-    char* dup_empty = d_strdup("");
-    test_empty_operations = (result_ptr == empty) && 
-                           (empty[0] == '\0') &&
-                           (dup_empty != NULL) && 
-                           (dup_empty[0] == '\0');
-    
-    if (dup_empty)
-    {
-        free(dup_empty);
-    }
-
-    // build result tree
-    group = d_test_object_new_interior("Boundary Conditions", 6);
+    group     = d_test_object_new_interior("d_string_error_r", 9);
+    child_idx = 0;
 
     if (!group)
     {
         return NULL;
     }
 
-    idx = 0;
-    group->elements[idx++] = D_ASSERT_TRUE("zero_length",
-                                           test_zero_length,
-                                           "handles zero-length buffers");
-    group->elements[idx++] = D_ASSERT_TRUE("single_char",
-                                           test_single_char,
-                                           "handles single character operations");
-    group->elements[idx++] = D_ASSERT_TRUE("exact_boundary",
-                                           test_exact_boundary,
-                                           "handles exact boundary fit");
-    group->elements[idx++] = D_ASSERT_TRUE("off_by_one",
-                                           test_off_by_one,
-                                           "detects off-by-one errors");
-    group->elements[idx++] = D_ASSERT_TRUE("max_size",
-                                           test_max_size,
-                                           "handles maximum size operations");
-    group->elements[idx++] = D_ASSERT_TRUE("empty_operations",
-                                           test_empty_operations,
-                                           "handles empty string operations");
+    // test 1: NULL destination returns error
+    result = d_string_error_r(EINVAL, NULL);
+    group->elements[child_idx++] = D_ASSERT_TRUE(
+        "null_dest_error",
+        result != 0,
+        "d_string_error_r(..., NULL) should return error"
+    );
+
+    // test 2: EINVAL
+    dest = d_string_new();
+
+    if (dest)
+    {
+        result = d_string_error_r(EINVAL, dest);
+
+        group->elements[child_idx++] = D_ASSERT_TRUE(
+            "einval_succeeds",
+            result == 0,
+            "d_string_error_r(EINVAL, ...) should succeed"
+        );
+
+        group->elements[child_idx++] = D_ASSERT_TRUE(
+            "einval_not_empty",
+            dest->size > 0,
+            "error message should not be empty"
+        );
+
+        d_string_free(dest);
+    }
+    else
+    {
+        group->elements[child_idx++] = D_ASSERT_TRUE("einval_skip", false, "skip");
+        group->elements[child_idx++] = D_ASSERT_TRUE("einval_ne_skip", false, "skip");
+    }
+
+    // test 3: ENOMEM
+    dest = d_string_new();
+
+    if (dest)
+    {
+        result = d_string_error_r(ENOMEM, dest);
+
+        group->elements[child_idx++] = D_ASSERT_TRUE(
+            "enomem_succeeds",
+            result == 0,
+            "d_string_error_r(ENOMEM, ...) should succeed"
+        );
+
+        d_string_free(dest);
+    }
+    else
+    {
+        group->elements[child_idx++] = D_ASSERT_TRUE("enomem_skip", false, "skip");
+    }
+
+    // test 4: error code 0
+    dest = d_string_new();
+
+    if (dest)
+    {
+        result = d_string_error_r(0, dest);
+
+        group->elements[child_idx++] = D_ASSERT_TRUE(
+            "zero_succeeds",
+            result == 0,
+            "d_string_error_r(0, ...) should succeed"
+        );
+
+        d_string_free(dest);
+    }
+    else
+    {
+        group->elements[child_idx++] = D_ASSERT_TRUE("zero_skip", false, "skip");
+    }
+
+    // test 5: unknown error code
+    dest = d_string_new();
+
+    if (dest)
+    {
+        result = d_string_error_r(99999, dest);
+
+        // should still succeed and provide some message
+        group->elements[child_idx++] = D_ASSERT_TRUE(
+            "unknown_succeeds",
+            result == 0,
+            "unknown error should still succeed"
+        );
+
+        group->elements[child_idx++] = D_ASSERT_TRUE(
+            "unknown_has_message",
+            dest->size > 0,
+            "unknown error should have some message"
+        );
+
+        d_string_free(dest);
+    }
+    else
+    {
+        group->elements[child_idx++] = D_ASSERT_TRUE("unknown_skip", false, "skip");
+        group->elements[child_idx++] = D_ASSERT_TRUE("unknown_msg_skip", false, "skip");
+    }
+
+    // test 6: previous content replaced
+    dest = d_string_new_from_cstr("Previous content that should be replaced");
+
+    if (dest)
+    {
+        result = d_string_error_r(EINVAL, dest);
+
+        group->elements[child_idx++] = D_ASSERT_TRUE(
+            "content_replaced",
+            strstr(dest->text, "Previous") == NULL,
+            "previous content should be replaced"
+        );
+
+        d_string_free(dest);
+    }
+    else
+    {
+        group->elements[child_idx++] = D_ASSERT_TRUE("replace_skip", false, "skip");
+    }
 
     return group;
 }
 
 
+/******************************************************************************
+* d_tests_sa_dstring_error_all
+******************************************************************************/
+
+/*
+d_tests_sa_dstring_error_all
+  Runs all error string tests and returns an aggregate test object containing
+  all results.
+
+Parameter(s):
+  (none)
+Return:
+  Test object containing all error string test results.
+*/
+struct d_test_object*
+d_tests_sa_dstring_error_all
+(
+    void
+)
+{
+    struct d_test_object* group;
+    size_t                child_idx;
+
+    group     = d_test_object_new_interior("d_string Error Functions", 2);
+    child_idx = 0;
+
+    if (!group)
+    {
+        return NULL;
+    }
+
+    // run all error string tests
+    group->elements[child_idx++] = d_tests_sa_dstring_error();
+    group->elements[child_idx++] = d_tests_sa_dstring_error_r();
+
+    return group;
+}
