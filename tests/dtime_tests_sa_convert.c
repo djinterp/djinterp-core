@@ -325,10 +325,16 @@ d_tests_dtime_ctime
     ret_ptr = d_ctime(&epoch, buf);
     test_epoch = (ret_ptr != NULL) && (strlen(buf) >= 24);
 
-    // test 8: Y2K contains "2000"
+    // test 8: Y2K timestamp
+    // Note: d_ctime converts to LOCAL time, not UTC. The Y2K timestamp (946684800)
+    // is 2000-01-01 00:00:00 UTC, but in timezones behind UTC (e.g., PST = UTC-8),
+    // this will display as 1999-12-31 in local time. Therefore, we check for
+    // either "2000" or "1999" to handle all timezones correctly.
     memset(buf, 0, sizeof(buf));
     ret_ptr = d_ctime(&y2k, buf);
-    test_y2k_contains_2000 = (ret_ptr != NULL) && (strstr(buf, "2000") != NULL);
+    test_y2k_contains_2000 = (ret_ptr != NULL) && 
+                             ((strstr(buf, "2000") != NULL) || 
+                              (strstr(buf, "1999") != NULL));
 
     // build result tree
     group = d_test_object_new_interior("d_ctime", 8);
@@ -362,7 +368,7 @@ d_tests_dtime_ctime
                                            "d_ctime handles epoch timestamp");
     group->elements[idx++] = D_ASSERT_TRUE("y2k_year",
                                            test_y2k_contains_2000,
-                                           "d_ctime Y2K string contains 2000");
+                                           "d_ctime Y2K string has valid year");
 
     return group;
 }
