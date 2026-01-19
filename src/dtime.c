@@ -1,4 +1,5 @@
 #include "..\inc\dtime.h"
+#include "..\inc\string_fn.h"
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -855,12 +856,33 @@ d_strptime
     return strptime(_s, _format, _tm);
 
 #else
-    // minimal Windows/fallback implementation
-    // supports only the most common format specifiers
+    // Windows/fallback implementation
+    // supports common format specifiers including month and weekday names
     const char* sp;
     const char* fp;
     int         value;
     int         digits;
+    int         i;
+    int         matched;
+
+    // month names (abbreviated and full)
+    static const char* month_abbrev[12] = {
+        "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+        "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+    };
+    static const char* month_full[12] = {
+        "January", "February", "March", "April", "May", "June",
+        "July", "August", "September", "October", "November", "December"
+    };
+
+    // weekday names (abbreviated and full)
+    static const char* weekday_abbrev[7] = {
+        "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"
+    };
+    static const char* weekday_full[7] = {
+        "Sunday", "Monday", "Tuesday", "Wednesday",
+        "Thursday", "Friday", "Saturday"
+    };
 
     sp = _s;
     fp = _format;
@@ -921,6 +943,143 @@ d_strptime
                     }
 
                     _tm->tm_mon = value - 1;
+                    break;
+
+                case 'b':  // abbreviated month name (Jan, Feb, ...)
+                case 'h':  // same as %b
+                    matched = 0;
+
+                    for (i = 0; i < 12; i++)
+                    {
+                        size_t len = strlen(month_abbrev[i]);
+
+                        if (d_strncasecmp(sp, month_abbrev[i], len) == 0)
+                        {
+                            _tm->tm_mon = i;
+                            sp += len;
+                            matched = 1;
+                            break;
+                        }
+                    }
+
+                    if (!matched)
+                    {
+                        // try full month names as fallback
+                        for (i = 0; i < 12; i++)
+                        {
+                            size_t len = strlen(month_full[i]);
+
+                            if (d_strncasecmp(sp, month_full[i], len) == 0)
+                            {
+                                _tm->tm_mon = i;
+                                sp += len;
+                                matched = 1;
+                                break;
+                            }
+                        }
+                    }
+                    break;
+
+                case 'B':  // full month name (January, February, ...)
+                    matched = 0;
+
+                    for (i = 0; i < 12; i++)
+                    {
+                        size_t len = strlen(month_full[i]);
+
+                        if (d_strncasecmp(sp, month_full[i], len) == 0)
+                        {
+                            _tm->tm_mon = i;
+                            sp += len;
+                            matched = 1;
+                            break;
+                        }
+                    }
+
+                    if (!matched)
+                    {
+                        // try abbreviated month names as fallback
+                        for (i = 0; i < 12; i++)
+                        {
+                            size_t len = strlen(month_abbrev[i]);
+
+                            if (d_strncasecmp(sp, month_abbrev[i], len) == 0)
+                            {
+                                _tm->tm_mon = i;
+                                sp += len;
+                                matched = 1;
+                                break;
+                            }
+                        }
+                    }
+                    break;
+
+                case 'a':  // abbreviated weekday name (Sun, Mon, ...)
+                    matched = 0;
+
+                    for (i = 0; i < 7; i++)
+                    {
+                        size_t len = strlen(weekday_abbrev[i]);
+
+                        if (d_strncasecmp(sp, weekday_abbrev[i], len) == 0)
+                        {
+                            _tm->tm_wday = i;
+                            sp += len;
+                            matched = 1;
+                            break;
+                        }
+                    }
+
+                    if (!matched)
+                    {
+                        // try full weekday names as fallback
+                        for (i = 0; i < 7; i++)
+                        {
+                            size_t len = strlen(weekday_full[i]);
+
+                            if (d_strncasecmp(sp, weekday_full[i], len) == 0)
+                            {
+                                _tm->tm_wday = i;
+                                sp += len;
+                                matched = 1;
+                                break;
+                            }
+                        }
+                    }
+                    break;
+
+                case 'A':  // full weekday name (Sunday, Monday, ...)
+                    matched = 0;
+
+                    for (i = 0; i < 7; i++)
+                    {
+                        size_t len = strlen(weekday_full[i]);
+
+                        if (d_strncasecmp(sp, weekday_full[i], len) == 0)
+                        {
+                            _tm->tm_wday = i;
+                            sp += len;
+                            matched = 1;
+                            break;
+                        }
+                    }
+
+                    if (!matched)
+                    {
+                        // try abbreviated weekday names as fallback
+                        for (i = 0; i < 7; i++)
+                        {
+                            size_t len = strlen(weekday_abbrev[i]);
+
+                            if (d_strncasecmp(sp, weekday_abbrev[i], len) == 0)
+                            {
+                                _tm->tm_wday = i;
+                                sp += len;
+                                matched = 1;
+                                break;
+                            }
+                        }
+                    }
                     break;
 
                 case 'd':  // day of month (01-31)
@@ -1018,6 +1177,15 @@ d_strptime
                     }
 
                     _tm->tm_yday = value - 1;
+                    break;
+
+                case 'w':  // weekday as decimal (0-6, Sunday = 0)
+                    if ( (*sp >= '0') && 
+                         (*sp <= '6') )
+                    {
+                        _tm->tm_wday = *sp - '0';
+                        sp++;
+                    }
                     break;
 
                 case 'p':  // AM/PM
@@ -1564,23 +1732,53 @@ d_timespec_normalize
     struct timespec* _ts
 )
 {
+    long long nsec_ll;
+    long long sec_adj;
+
     if (!_ts)
     {
         return;
     }
 
-    // handle positive overflow
-    while (_ts->tv_nsec >= D_TIME_NSEC_PER_SEC)
-    {
-        _ts->tv_sec  += 1;
-        _ts->tv_nsec -= D_TIME_NSEC_PER_SEC;
-    }
+    // use `long long` for all arithmetic to handle large values and overflow
+    // this is necessary because tv_nsec on some platforms is a 32-bit long,
+    // but the tests may assign values like 5000000000LL that exceed 32 bits
+    nsec_ll = (long long)_ts->tv_nsec;
 
-    // handle negative values
-    while (_ts->tv_nsec < 0)
+    // handle positive overflow (nsec >= 1 billion)
+    if (nsec_ll >= D_TIME_NSEC_PER_SEC)
     {
-        _ts->tv_sec  -= 1;
-        _ts->tv_nsec += D_TIME_NSEC_PER_SEC;
+        // calculate how many extra seconds we have
+        sec_adj = nsec_ll / D_TIME_NSEC_PER_SEC;
+        _ts->tv_sec += (time_t)sec_adj;
+        _ts->tv_nsec = (long)(nsec_ll - sec_adj * D_TIME_NSEC_PER_SEC);
+    }
+    // handle negative nanoseconds
+    else if (nsec_ll < 0)
+    {
+        // for negative values, we need to borrow from seconds
+        // example: -300000000 ns -> borrow 1 sec, get 700000000 ns
+        // example: -2500000000 ns -> borrow 3 sec, get 500000000 ns
+        
+        // calculate how many seconds to borrow (ceiling division for negatives)
+        // we want sec_adj to be positive, representing seconds to subtract
+        sec_adj = (-nsec_ll + D_TIME_NSEC_PER_SEC - 1) / D_TIME_NSEC_PER_SEC;
+        
+        _ts->tv_sec -= (time_t)sec_adj;
+        _ts->tv_nsec = (long)(nsec_ll + sec_adj * D_TIME_NSEC_PER_SEC);
+        
+        // ensure tv_nsec is in valid range [0, 999999999]
+        // this handles edge cases from the ceiling division
+        if (_ts->tv_nsec < 0)
+        {
+            _ts->tv_sec--;
+            _ts->tv_nsec += D_TIME_NSEC_PER_SEC;
+        }
+        else if (_ts->tv_nsec >= D_TIME_NSEC_PER_SEC)
+        {
+            _ts->tv_sec++;
+            _ts->tv_nsec -= D_TIME_NSEC_PER_SEC;
+        }
     }
 
     return;
