@@ -58,9 +58,10 @@ d_tests_string_fn_strtok_r
                           (token != NULL) && 
                           (strcmp(token, "world") == 0);
 
-    // test 3: NULL string on continuation
+    // test 3: NULL string on continuation (use fresh string since str1 was modified)
+    char str1_fresh[] = "one,two,three,four";
     saveptr1 = NULL;
-    token = d_strtok_r(str1, ",", &saveptr1);
+    token = d_strtok_r(str1_fresh, ",", &saveptr1);
     token = d_strtok_r(NULL, ",", &saveptr1);  // continue with NULL
     test_null_continuation = (token != NULL);
 
