@@ -1,4 +1,5 @@
 #include "dtime_tests_sa.h"
+#include <limits.h>
 
 
 /******************************************************************************
@@ -69,19 +70,39 @@ d_tests_dtime_timespec_normalize
     test_zero_values = (ts.tv_sec == 0) && (ts.tv_nsec == 0);
 
     // test 5: handles large nanosecond overflow (5 billion ns -> 5s)
+    // Note: On platforms where tv_nsec is a 32-bit long, values > ~2.1 billion
+    // overflow. We test with a value that fits in 32-bit long on those platforms
+    // but still exercises the overflow logic. 2.5 billion fits in int64_t but not
+    // 32-bit long, so we conditionally test based on platform capabilities.
+#if (LONG_MAX > 2500000000LL)
     ts.tv_sec  = 0;
-    ts.tv_nsec = 5000000000LL;  // 5 billion nanoseconds - use long long literal
-
+    ts.tv_nsec = 5000000000LL;  // 5 billion nanoseconds
     d_timespec_normalize(&ts);
     test_large_overflow = (ts.tv_sec == 5) && (ts.tv_nsec == 0);
+#else
+    // On 32-bit long platforms, test with max representable positive value
+    // that still causes overflow (2 billion ns = 2 seconds)
+    ts.tv_sec  = 0;
+    ts.tv_nsec = 2000000000L;  // 2 billion nanoseconds
+    d_timespec_normalize(&ts);
+    test_large_overflow = (ts.tv_sec == 2) && (ts.tv_nsec == 0);
+#endif
 
     // test 6: handles large negative nanoseconds (0s - 2.5B ns -> -3s + 500M ns)
+#if (LONG_MIN < -2500000000LL)
     ts.tv_sec  = 0;
-    ts.tv_nsec = -2500000000LL;  // -2.5 billion nanoseconds - use long long literal
-
+    ts.tv_nsec = -2500000000LL;  // -2.5 billion nanoseconds
     d_timespec_normalize(&ts);
     // result should be -3 seconds + 500000000 nanoseconds = -2.5 seconds total
     test_large_negative = (ts.tv_sec == -3) && (ts.tv_nsec == 500000000L);
+#else
+    // On 32-bit long platforms, test with max representable negative value
+    // that still causes underflow (-1.5 billion ns -> -2s + 500M ns)
+    ts.tv_sec  = 0;
+    ts.tv_nsec = -1500000000L;  // -1.5 billion nanoseconds
+    d_timespec_normalize(&ts);
+    test_large_negative = (ts.tv_sec == -2) && (ts.tv_nsec == 500000000L);
+#endif
 
     // test 7: positive seconds with negative nanoseconds (10s - 1.2B ns -> 8s + 800M ns)
     ts.tv_sec  = 10;
