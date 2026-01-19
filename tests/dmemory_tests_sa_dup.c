@@ -73,15 +73,20 @@ d_tests_dmemory_memdup_s
     test_zero_size = (dup == NULL);
 
     // test 5: independence of copy
+    // After duplicating, modifying the original should not affect the duplicate
     unsigned char original[10] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
     unsigned char* dup_indep = (unsigned char*)d_memdup_s(original, sizeof(original));
     test_independence = false;
     
     if (dup_indep)
     {
+        // modify the original - this should NOT affect the duplicate
         original[0] = 99;
-        test_independence = (dup_indep[0] == 1) && 
-                          (memcmp(&dup_indep[1], &original[1], 9) != 0);
+        
+        // the duplicate should still have the original value (1) at position 0
+        // and the rest should be unchanged (positions 1-9 still match because
+        // we only changed original[0])
+        test_independence = (dup_indep[0] == 1);  // duplicate is independent
         free(dup_indep);
     }
 
@@ -546,5 +551,3 @@ d_tests_dmemory_set_all
 
     return group;
 }
-
-
