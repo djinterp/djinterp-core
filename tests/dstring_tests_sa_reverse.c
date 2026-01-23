@@ -311,7 +311,7 @@ d_tests_sa_dstring_reverse
     if (str)
     {
         // save original
-        d_strcpy_s(original, str->text, strlen(STR_TESTING));
+        d_strcpy_s(original, sizeof(original), str->text);
 
         // reverse twice
         d_string_reverse(str);
@@ -738,7 +738,7 @@ d_tests_sa_dstring_reversal_all
     struct d_test_object* group;
     size_t                child_idx;
 
-    group     = d_test_object_new_interior("d_string Reversal", 2);
+    group     = d_test_object_new_interior("`dstring` reversal", 2);
     child_idx = 0;
 
     if (!group)

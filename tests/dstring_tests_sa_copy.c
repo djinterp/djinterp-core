@@ -836,11 +836,11 @@ d_tests_sa_dstring_to_buffer_s
     }
 
     // test 1: NULL string returns error
-    result = d_string_to_buffer_s(NULL, buffer, sizeof(buffer));
+    result = d_string_to_buffer_s(buffer, sizeof(buffer), NULL);
     group->elements[child_idx++] = D_ASSERT_TRUE(
         "null_string_returns_error",
         result != 0,
-        "d_string_to_buffer_s(NULL, ...) should return error"
+        "d_string_to_buffer_s(..., NULL) should return error"
     );
 
     // test 2: NULL buffer returns error
@@ -848,12 +848,12 @@ d_tests_sa_dstring_to_buffer_s
 
     if (str)
     {
-        result = d_string_to_buffer_s(str, NULL, 10);
+        result = d_string_to_buffer_s(NULL, 10, str);
 
         group->elements[child_idx++] = D_ASSERT_TRUE(
             "null_buffer_returns_error",
             result != 0,
-            "d_string_to_buffer_s(..., NULL, ...) should return error"
+            "d_string_to_buffer_s(NULL, ...) should return error"
         );
 
         d_string_free(str);
@@ -868,7 +868,7 @@ d_tests_sa_dstring_to_buffer_s
 
     if (str)
     {
-        result = d_string_to_buffer_s(str, buffer, 0);
+        result = d_string_to_buffer_s(buffer, 0, str);
 
         group->elements[child_idx++] = D_ASSERT_TRUE(
             "zero_size_returns_error",
@@ -889,7 +889,7 @@ d_tests_sa_dstring_to_buffer_s
     if (str)
     {
         char tiny_buffer[1];
-        result = d_string_to_buffer_s(str, tiny_buffer, 1);
+        result = d_string_to_buffer_s(tiny_buffer, 1, str);
 
         group->elements[child_idx++] = D_ASSERT_TRUE(
             "size_1_null_terminates",
@@ -910,7 +910,7 @@ d_tests_sa_dstring_to_buffer_s
     if (str)
     {
         memset(small_buffer, 'X', sizeof(small_buffer));
-        result = d_string_to_buffer_s(str, small_buffer, 6);
+        result = d_string_to_buffer_s(small_buffer, 6, str);
 
         group->elements[child_idx++] = D_ASSERT_TRUE(
             "exact_fit_succeeds",
@@ -938,7 +938,7 @@ d_tests_sa_dstring_to_buffer_s
     if (str)
     {
         memset(buffer, 'X', sizeof(buffer));
-        result = d_string_to_buffer_s(str, buffer, sizeof(buffer));
+        result = d_string_to_buffer_s(buffer, sizeof(buffer), str);
 
         group->elements[child_idx++] = D_ASSERT_STR_EQUAL(
             "larger_buffer_content",
@@ -959,7 +959,7 @@ d_tests_sa_dstring_to_buffer_s
     if (str)
     {
         memset(small_buffer, 0, sizeof(small_buffer));
-        result = d_string_to_buffer_s(str, small_buffer, sizeof(small_buffer));
+        result = d_string_to_buffer_s(small_buffer, sizeof(small_buffer), str);
 
         // either truncates (result == 0) or returns error (result != 0)
         // but buffer should be null-terminated either way
@@ -982,7 +982,7 @@ d_tests_sa_dstring_to_buffer_s
     if (str)
     {
         buffer[0] = 'X';
-        result = d_string_to_buffer_s(str, buffer, sizeof(buffer));
+        result = d_string_to_buffer_s(buffer, sizeof(buffer), str);
 
         group->elements[child_idx++] = D_ASSERT_TRUE(
             "empty_string_to_buffer",
