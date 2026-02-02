@@ -1,8 +1,35 @@
 /******************************************************************************
-* djinterp [meta]                                              tuple_manip.hpp
+* djinterp [core]                                                   dtuple.hpp
 *
-* djinterp tuple manipulation header:
-*   This header provides advanced tuple manipulation metafunctions for
+* djinterp tuple module
+* ---------------------
+*   This header is intended to supplement the `std::tuple` general utility
+* library.
+* 
+*   All metafunctions herein are designed to work with C++11 and later, using
+* portable trait access patterns i.e. (`::value` instead of `_v` suffixes)
+* where appropriate.
+*
+*   compile-time tuple operations. It includes:
+*   - tuple joining and concatenation (tuple_join, tuple_concat)
+*   - element access (tuple_type_at, tuple_type_at_value)
+*   - type counting and removal (tuple_count_type, tuple_count_and_remove)
+*   - tuple splitting (tuple_split, tuple_subsequence)
+*   - type transformation (tuple_apply_all, tuple_consolidate_types)
+*   - type selection utilities (type_case, type_selector)
+* 
+* PORTABILITY:
+*   version: C++11 or higher
+*   dependencies:
+*   - `env.h`:          for C++ version detection.
+*   - `cpp_features.h`: fine-grained C++ feature detection.
+* 
+*   All metafunctions herein are designed to work with C++11 and later, using
+* portable trait access patterns i.e. (`::value` instead of `_v` suffixes)
+* where appropriate.
+* 
+* 
+provides advanced tuple manipulation metafunctions for
 * compile-time tuple operations. It includes:
 *   - tuple joining and concatenation (tuple_join, tuple_concat)
 *   - element access (tuple_type_at, tuple_type_at_value)
@@ -17,23 +44,382 @@
 * patterns (::value instead of _v suffixes) for compatibility with C++11 and
 * later.
 * 
-* path:      \inc\meta\tuple_manip.hpp
-* link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2024.05.07
+* djinterp tuple utility header:
+*   This header provides tuple-related type trait utilities and metafunctions
+* for compile-time tuple manipulation. It includes:
+*   - type extraction (first_arg)
+*   - tuple detection (is_tuple, is_single_tuple_arg)
+*   - tuple construction (to_tuple, make_tuple_of, repeat)
+*   - type modifiers (wrap_all, to_lvalue_reference, to_pointer, etc.)
+*
+*   PORTABILITY:
+*   This header uses env.h for C++ version detection and cpp_features.h for
+* fine-grained feature detection. All metafunctions are designed to work with
+* C++11 and later, using portable trait access patterns.
+*
+* 
+* path:      \inc\dtuple.hpp
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                          date: 2024.04.25
 ******************************************************************************/
 
-#ifndef DJINTERP_TUPLE_MANIP_
-#define DJINTERP_TUPLE_MANIP_ 1
+#ifndef DJINTERP_TUPLE_
+#define DJINTERP_TUPLE_ 1
 
-#include <tuple>
+#include <algorithm>
 #include <array>
+#include <tuple>
 #include <type_traits>
+#include <utility>
 #include ".\djinterp.h"
-#include "..\cpp_features.h"
-#include ".\tuple_util.hpp"
+#include ".\cpp_features.h"
 
 
 NS_DJINTERP
+
+    // =========================================================================
+    // FORWARD DECLARATIONS
+    // =========================================================================
+
+    template<typename... _Types>
+    struct first_arg;
+
+    template<typename _Type>
+    struct first_arg<_Type>;
+
+    template<typename _Type,
+             typename... _Types>
+    struct first_arg<_Type, _Types...>;
+
+    template<typename... _Types>
+    struct is_single_arg;
+
+    template<typename _Type>
+    struct is_single_arg<_Type>;
+
+    template<typename _Type>
+    struct is_tuple;
+
+    template<typename... _Types>
+    struct is_tuple<std::tuple<_Types...>>;
+
+    template<typename... _Types>
+    struct is_single_tuple_arg;
+
+    template<typename _Type>
+    struct is_single_tuple_arg<_Type>;
+
+    template<typename... _Types>
+    struct to_tuple;
+
+    template<typename _Type>
+    struct to_tuple<_Type>;
+
+    template<template<typename> typename... _Modifiers>
+    struct wrap_all;
+
+    template<template<typename> typename    _Modifier,
+             template<typename> typename... _Modifiers>
+    struct wrap_all<_Modifier, _Modifiers...>;
+
+    template<>
+    struct wrap_all<>;
+
+
+    // =========================================================================
+    // II.  PARAMETER PACK UTILITIES
+    // =========================================================================
+
+    // first_arg
+    //   type trait: given a parameter pack, determines the first parameter.
+    // Member alias `type` is the type of the first argument in the pack.
+    template<typename... _Types>
+    struct first_arg;
+
+    template<typename _Type>
+    struct first_arg<_Type>
+    {
+        using type = _Type;
+    };
+
+    template<typename    _Type,
+              typename... _Types>
+    struct first_arg<_Type, _Types...>
+    {
+        using type = _Type;
+    };
+
+    // first_arg_t
+    //   alias template: shorthand for `first_arg<_Types...>::type`.
+    template<typename... _Types>
+    using first_arg_t = typename first_arg<_Types...>::type;
+
+    // is_single_arg
+    //   type trait: evaluates to `std::true_type` if the parameter pack
+    // consists of exactly one argument; otherwise `std::false_type`.
+    template<typename... _Types>
+    struct is_single_arg : std::false_type
+    {};
+
+    template<typename _Type>
+    struct is_single_arg<_Type> : std::true_type
+    {};
+
+#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
+    // is_single_arg_v
+    //
+    template<typename... _Types>
+    constexpr bool is_single_arg_v = is_single_arg<_Types...>::value;
+#endif
+
+
+
+    // =========================================================================
+    // III. TUPLE DETECTION TRAITS
+    // =========================================================================
+
+    // is_tuple
+    //   type trait: evaluates to `std::true_type` if `_Type` is a `std::tuple`,
+    // otherwise `std::false_type`.
+    template<typename _Type>
+    struct is_tuple : std::false_type
+    {};
+
+    template<typename... _Types>
+    struct is_tuple<std::tuple<_Types...>> : std::true_type
+    {};
+
+    // is_tuple_v
+    //   
+#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
+    template<typename _Type>
+    constexpr bool is_tuple_v = is_tuple<_Type>::value;
+#endif
+
+    // is_single_tuple_arg
+    //   type trait: evaluates to `std::true_type` if the parameter pack
+    // consists of exactly one argument that is itself a `std::tuple`.
+    template<typename... _Types>
+    struct is_single_tuple_arg : std::conditional<
+        (sizeof...(_Types) == 1),
+        is_tuple<typename std::tuple_element<0, std::tuple<_Types...>>::type>,
+        std::false_type
+    >::type
+    {};
+
+    // is_single_tuple_arg_v
+    //   
+#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
+    template<typename... _Types>
+    constexpr bool is_single_tuple_arg_v = is_single_tuple_arg<_Types...>::value;
+#endif
+
+
+    // =========================================================================
+    // V.   TUPLE CONSTRUCTION
+    // =========================================================================
+
+    // to_tuple
+    //   type trait: converts a parameter pack to a `std::tuple`.
+    // If the parameter pack consists of a single `std::tuple` type, `to_tuple`
+    // resolves to that tuple type directly. Otherwise, all arguments are
+    // wrapped in a new `std::tuple`.
+    template<typename... _Types>
+    struct to_tuple
+    {
+        using type = typename std::conditional<
+            is_single_tuple_arg<_Types...>::value,
+            typename first_arg<_Types...>::type,
+            std::tuple<_Types...>
+        >::type;
+    };
+
+    template<typename _Type>
+    struct to_tuple<_Type>
+    {
+        using type = typename std::conditional<
+            is_tuple<_Type>::value,
+            _Type,
+            std::tuple<_Type>
+        >::type;
+    };
+
+    // to_tuple_t
+    //   alias template: shorthand for `to_tuple<_Types...>::type`.
+    template<typename... _Types>
+    using to_tuple_t = typename to_tuple<_Types...>::type;
+
+    // make_tuple_of
+    //   type trait: creates a `std::tuple` containing `_Count` copies of
+    // `_Type`.
+    template<typename    _Type,
+              std::size_t _Count>
+    struct make_tuple_of;
+
+    template<typename _Type>
+    struct make_tuple_of<_Type, 0>
+    {
+        using type = std::tuple<>;
+    };
+
+    template<typename _Type>
+    struct make_tuple_of<_Type, 1>
+    {
+        using type = to_tuple_t<_Type>;
+    };
+
+    template<typename    _Type,
+              std::size_t _Count>
+    struct make_tuple_of
+    {
+    private:
+        template<std::size_t... _Indices>
+        static auto make_impl(std::index_sequence<_Indices...>)
+        {
+            // Use comma operator to expand _Indices but always produce _Type
+            return to_tuple_t<decltype((_Indices, std::declval<_Type>()))...>{};
+        }
+
+    public:
+        using type = decltype(make_impl(std::make_index_sequence<_Count>{}));
+    };
+
+    // make_tuple_of_t
+    //   alias template: shorthand for `make_tuple_of<_Type, _Count>::type`.
+    template<typename    _Type,
+              std::size_t _Count>
+    using make_tuple_of_t = typename make_tuple_of<_Type, _Count>::type;
+
+    // repeat (internal helper)
+    NS_INTERNAL
+
+        template<typename      _Type,
+                  std::size_t   _N,
+                  typename... _Types>
+        struct repeat_type_helper
+        {
+            using type = typename repeat_type_helper<_Type, _N - 1, _Type, _Types...>::type;
+        };
+
+        template<typename    _Type,
+                  typename... _Types>
+        struct repeat_type_helper<_Type, 0, _Types...>
+        {
+            using type = std::tuple<_Types...>;
+        };
+
+    NS_END  // internal
+
+    // repeat
+    //   type trait: creates a `std::tuple` by repeating `_Type` exactly
+    // `_NumTimes` times.
+    template<typename    _Type,
+              std::size_t _NumTimes>
+    struct repeat
+    {
+        using type = typename std::conditional<
+            (_NumTimes > 0),
+            typename internal::repeat_type_helper<_Type, _NumTimes>::type,
+            std::tuple<>
+        >::type;
+    };
+
+    // repeat_t
+    //   alias template: shorthand for `repeat<_Type, _NumTimes>::type`.
+    template<typename    _Type,
+              std::size_t _NumTimes>
+    using repeat_t = typename repeat<_Type, _NumTimes>::type;
+
+
+    // =========================================================================
+    // VI.  TYPE MODIFIERS
+    // =========================================================================
+
+    // wrap_all
+    //   type trait: applies a series of type transformations left-to-right,
+    // where right is the innermost and left is the outermost.
+    // Example: wrap_all<X, Y, Z>::template type<int> == X<Y<Z<int>>>
+    template<template<typename> typename... _Modifiers>
+    struct wrap_all
+    {
+        template<typename _Type>
+        using type = _Type;
+    };
+
+    template<template<typename> typename    _Modifier,
+              template<typename> typename... _Modifiers>
+    struct wrap_all<_Modifier, _Modifiers...>
+    {
+        template<typename _Type>
+        using type = typename _Modifier<
+            typename wrap_all<_Modifiers...>::template type<_Type>
+        >::type;
+    };
+
+    template<>
+    struct wrap_all<>
+    {
+        template<typename _Type>
+        using type = _Type;
+    };
+
+    // wrap_all_t
+    //   alias template: shorthand for applying wrap_all.
+    template<typename                        _Type,
+              template<typename> typename... _Modifiers>
+    using wrap_all_t = typename wrap_all<_Modifiers...>::template type<_Type>;
+
+    // to_lvalue_reference
+    //   type modifier: converts a type to an lvalue reference, removing any
+    // existing reference first.
+    struct to_lvalue_reference
+    {
+        template<typename _Type>
+        using type = typename wrap_all<
+            std::add_lvalue_reference,
+            std::remove_reference
+        >::template type<_Type>;
+    };
+
+    // to_rvalue_reference
+    //   type modifier: converts a type to an rvalue reference, removing any
+    // existing reference first.
+    struct to_rvalue_reference
+    {
+        template<typename _Type>
+        using type = typename wrap_all<
+            std::add_rvalue_reference,
+            std::remove_reference
+        >::template type<_Type>;
+    };
+
+    // to_pointer
+    //   type modifier: converts a type to a pointer, removing any existing
+    // pointer first.
+    struct to_pointer
+    {
+        template<typename _Type>
+        using type = typename wrap_all<
+            std::add_pointer,
+            std::remove_pointer
+        >::template type<_Type>;
+    };
+
+    // to_type
+    //   type trait: identity wrapper that simply exposes a `type` member alias.
+    // Useful for metaprogramming contexts where a type wrapper is expected.
+    template<typename _Type>
+    struct to_type
+    {
+        using type = _Type;
+    };
+
+    // to_type_t
+    //   alias template: shorthand for `to_type<_Type>::type`.
+    template<typename _Type>
+    using to_type_t = typename to_type<_Type>::type;
+
+
 
     // forward declaractions
     template<typename    _Type, 
@@ -45,25 +431,49 @@ NS_DJINTERP
     struct tuple_first_type;
 
     NS_INTERNAL
+        // tuple_join_helper
+        //   internal helper: flattens a `std::tuple` whose elements may be
+        // `std::tuple<...>` or single types, producing one `std::tuple<...>`.
         template<typename _Tuple,
                  typename... _Types>
         struct tuple_join_helper;
 
+        // base case: no more elements to process
         template<typename... _Types>
-        struct tuple_join_helper<std::tuple<>, _Types...>;
+        struct tuple_join_helper<std::tuple<>, _Types...>
+        {
+            using type = std::tuple<_Types...>;
+        };
+
+        // case: head is a std::tuple<...> => append its elements
         template<typename... _Head,
                  typename... _Tail,
                  typename... _Types>
-        struct tuple_join_helper<std::tuple<std::tuple<_Head...>, _Tail...>, _Types...>;
+        struct tuple_join_helper<std::tuple<std::tuple<_Head...>, _Tail...>, _Types...>
+        {
+            using type = typename tuple_join_helper<std::tuple<_Tail...>, _Types..., _Head...>::type;
+        };
 
+        // case: head is a single type => append it
         template<typename    _Head,
                  typename... _Tail,
                  typename... _Types>
-        struct tuple_join_helper<std::tuple<_Head, _Tail...>, _Types...>;
+        struct tuple_join_helper<std::tuple<_Head, _Tail...>, _Types...>
+        {
+            using type = typename tuple_join_helper<std::tuple<_Tail...>, _Types..., _Head>::type;
+        };
     NS_END  // internal
 
+    // tuple_join
+    //   type trait: joins/concatenates the types of one or more tuple-like
+    // inputs. Each argument that is a `std::tuple<...>` contributes its
+    // elements; non-tuple arguments contribute themselves as one element.
     template<typename... _Tuples>
-    struct tuple_join;
+    struct tuple_join
+    {
+        using type = typename internal::tuple_join_helper<std::tuple<_Tuples...>>::type;
+    };
+
 
 
     // =========================================================================
@@ -189,7 +599,7 @@ NS_DJINTERP
     template<typename... _Tuples>
     static constexpr auto tuple_concat(_Tuples&&... _tuples)
     {
-        return typename internal::tuple_join_helper<_Tuples...>::type{};
+        return std::tuple_cat(std::forward<_Tuples>(_tuples)...);
     }
 
 
@@ -648,7 +1058,141 @@ NS_DJINTERP
         return is_tuple_homogeneous<std::tuple<_Types...>>::value;
     }
 
+
+    // =========================================================================
+    // [extra] TUPLE OF TUPLES TYPE RELATION TRAITS
+    // =========================================================================
+
+    // normalize_tuple
+    //   type trait: maps `std::tuple<Ts...>` to `std::tuple<clean_t<Ts>...>`.
+    template<typename _Tuple>
+    struct normalize_tuple;
+
+    template<typename... _Ts>
+    struct normalize_tuple<std::tuple<_Ts...>>
+    {
+        using type = std::tuple<clean_t<_Ts>...>;
+    };
+
+    template<typename _Tuple>
+    using normalize_tuple_t = typename normalize_tuple<clean_t<_Tuple>>::type;
+
+    // tuple_all_elements_same_as
+    //   type trait: true if all elements in `_Tuple` (a `std::tuple`) are
+    // the same as `_Type` after applying `clean_t`.
+    template<typename _Tuple,
+             typename _Type>
+    struct tuple_all_elements_same_as;
+
+    template<typename _Type>
+    struct tuple_all_elements_same_as<std::tuple<>, _Type> : std::true_type
+    {};
+
+    template<typename _Head,
+             typename... _Tail,
+             typename _Type>
+    struct tuple_all_elements_same_as<std::tuple<_Head, _Tail...>, _Type>
+        : std::integral_constant<bool,
+            std::is_same<clean_t<_Head>, _Type>::value &&
+            tuple_all_elements_same_as<std::tuple<_Tail...>, _Type>::value>
+    {};
+
+    NS_INTERNAL
+
+        // inner_is_empty_tuple
+        //   internal helper: true if `_Inner` is `std::tuple<>` (after clean).
+        template<typename _Inner,
+                 typename = void>
+        struct inner_is_empty_tuple : std::false_type
+        {};
+
+        template<typename _Inner>
+        struct inner_is_empty_tuple<_Inner,
+            typename std::enable_if<is_tuple<clean_t<_Inner>>::value>::type>
+            : std::integral_constant<bool,
+                (std::tuple_size<normalize_tuple_t<_Inner>>::value == 0)>
+        {};
+
+        // all_inners_empty
+        template<typename... _Inners>
+        struct all_inners_empty : std::true_type
+        {};
+
+        template<typename _Head, typename... _Tail>
+        struct all_inners_empty<_Head, _Tail...>
+            : std::integral_constant<bool,
+                inner_is_empty_tuple<_Head>::value && all_inners_empty<_Tail...>::value>
+        {};
+
+        // inner_nonempty_all_elements_same
+        template<typename _Inner,
+                 typename _Type,
+                 typename = void>
+        struct inner_nonempty_all_elements_same : std::false_type
+        {};
+
+        template<typename _Inner,
+                 typename _Type>
+        struct inner_nonempty_all_elements_same<_Inner, _Type,
+            typename std::enable_if<is_tuple<clean_t<_Inner>>::value>::type>
+            : std::integral_constant<bool,
+                (std::tuple_size<normalize_tuple_t<_Inner>>::value > 0) &&
+                tuple_all_elements_same_as<normalize_tuple_t<_Inner>, _Type>::value>
+        {};
+
+        // all_inners_nonempty_all_elements_same
+        template<typename _Type,
+                 typename... _Inners>
+        struct all_inners_nonempty_all_elements_same : std::true_type
+        {};
+
+        template<typename _Type,
+                 typename _Head,
+                 typename... _Tail>
+        struct all_inners_nonempty_all_elements_same<_Type, _Head, _Tail...>
+            : std::integral_constant<bool,
+                inner_nonempty_all_elements_same<_Head, _Type>::value &&
+                all_inners_nonempty_all_elements_same<_Type, _Tail...>::value>
+        {};
+
+    NS_END  // internal
+
+    // all_inner_tuple_elements_one_type
+    //   type trait: true if `_Outer` is a `std::tuple` of `std::tuple`s and
+    // all element types across all inner tuples are one common type.
+    template<typename _Outer>
+    struct all_inner_tuple_elements_one_type : std::false_type
+    {};
+
+    template<>
+    struct all_inner_tuple_elements_one_type<std::tuple<>> : std::true_type
+    {};
+
+    // first inner is empty => true iff all inners are empty tuples
+    template<typename... _Inners>
+    struct all_inner_tuple_elements_one_type<std::tuple<std::tuple<>, _Inners...>>
+        : std::integral_constant<bool, internal::all_inners_empty<_Inners...>::value>
+    {};
+
+    // first inner is non-empty => all inners non-empty tuples and all elements match
+    template<typename    _E0,
+             typename... _Erest,
+             typename... _Inners>
+    struct all_inner_tuple_elements_one_type<std::tuple<std::tuple<_E0, _Erest...>, _Inners...>>
+        : std::integral_constant<bool,
+            tuple_all_elements_same_as<std::tuple<_E0, _Erest...>, clean_t<_E0>>::value &&
+            internal::all_inners_nonempty_all_elements_same<clean_t<_E0>, _Inners...>::value>
+    {};
+
+#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
+    // all_inner_tuple_elements_one_type_v
+    //
+    template<typename _Outer>
+    constexpr bool all_inner_tuple_elements_one_type_v = all_inner_tuple_elements_one_type<_Outer>::value;
+#endif
+
+
 NS_END  // djinterp
 
 
-#endif  // DJINTERP_TUPLE_MANIP_
+#endif  // DJINTERP_TUPLE_
