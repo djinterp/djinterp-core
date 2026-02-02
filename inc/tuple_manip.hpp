@@ -36,19 +36,34 @@
 NS_DJINTERP
 
     // forward declaractions
-    template <typename _Type, typename... _Types> struct tuple_count_and_remove;
-    template <typename _Type, typename... _Types> struct tuple_first_type;
+    template<typename    _Type, 
+             typename... _Types> 
+    struct tuple_count_and_remove;
+
+    template<typename    _Type, 
+             typename... _Types> 
+    struct tuple_first_type;
 
     NS_INTERNAL
-        template <typename _Tuple, typename... _Types> struct tuple_join_helper;
-        template <typename... _Types> struct tuple_join_helper<std::tuple<>, _Types...>;
-        template <typename... _Head, typename... _Tail, typename... _Types>
-            struct tuple_join_helper<std::tuple<std::tuple<_Head...>, _Tail...>, _Types...>;
-        template <typename _Head, typename... _Tail, typename... _Types>
-            struct tuple_join_helper<std::tuple<_Head, _Tail...>, _Types...>;
+        template<typename _Tuple,
+                 typename... _Types>
+        struct tuple_join_helper;
+
+        template<typename... _Types>
+        struct tuple_join_helper<std::tuple<>, _Types...>;
+        template<typename... _Head,
+                 typename... _Tail,
+                 typename... _Types>
+        struct tuple_join_helper<std::tuple<std::tuple<_Head...>, _Tail...>, _Types...>;
+
+        template<typename    _Head,
+                 typename... _Tail,
+                 typename... _Types>
+        struct tuple_join_helper<std::tuple<_Head, _Tail...>, _Types...>;
     NS_END  // internal
 
-    template <typename... _Tuples> struct tuple_join;
+    template<typename... _Tuples>
+    struct tuple_join;
 
 
     // =========================================================================
@@ -58,19 +73,19 @@ NS_DJINTERP
     // tuple_apply_all (internal helper)
     NS_INTERNAL
 
-        template <template <typename...> typename _UnaryTrait,
-                  typename _Tuple,
+        template<template<typename...> typename _UnaryTrait,
+                  typename    _Tuple,
                   typename... _Types>
         struct tuple_apply_all_helper;
 
-        template <template <typename...> typename _UnaryTrait,
+        template<template<typename...> typename _UnaryTrait,
                   typename... _Types>
         struct tuple_apply_all_helper<_UnaryTrait, std::tuple<>, _Types...>
         {
             using type = std::tuple<_Types...>;
         };
 
-        template <template <typename...> typename _UnaryTrait,
+        template<template<typename...> typename _UnaryTrait,
                   typename    _Head,
                   typename... _Tails,
                   typename... _Types>
@@ -88,7 +103,7 @@ NS_DJINTERP
 
     // tuple_apply_all
     //   type trait: applies a unary type trait to all elements of a tuple.
-    template <template <typename...> typename _UnaryTrait,
+    template<template<typename...> typename _UnaryTrait,
               typename... _Types>
     struct tuple_apply_all
     {
@@ -100,7 +115,7 @@ NS_DJINTERP
 
     // tuple_apply_all_t
     //   alias template: shorthand for `tuple_apply_all<...>::type`.
-    template <template <typename...> typename _UnaryTrait,
+    template<template<typename...> typename _UnaryTrait,
               typename... _Types>
     using tuple_apply_all_t = typename tuple_apply_all<_UnaryTrait, _Types...>::type;
 
@@ -112,11 +127,11 @@ NS_DJINTERP
     // tuple_type_at (internal helper)
     NS_INTERNAL
 
-        template <std::size_t _Index,
+        template<std::size_t _Index,
                   typename    _Tuple>
         struct tuple_type_at_helper;
 
-        template <typename    _Head,
+        template<typename    _Head,
                   typename... _Tail>
         struct tuple_type_at_helper<0, std::tuple<_Head, _Tail...>>
         {
@@ -128,7 +143,7 @@ NS_DJINTERP
             }
         };
 
-        template <std::size_t _Index,
+        template<std::size_t _Index,
                   typename    _Head,
                   typename... _Tail>
         struct tuple_type_at_helper<_Index, std::tuple<_Head, _Tail...>>
@@ -140,7 +155,7 @@ NS_DJINTERP
 
     // tuple_type_at
     //   type trait: retrieves the type at a specific index in a tuple.
-    template <std::size_t _Index,
+    template<std::size_t _Index,
               typename... _Types>
     struct tuple_type_at
     {
@@ -156,13 +171,13 @@ NS_DJINTERP
 
     // tuple_type_at_t
     //   alias template: shorthand for `tuple_type_at<...>::type`.
-    template <std::size_t _Index,
+    template<std::size_t _Index,
               typename... _Types>
     using tuple_type_at_t = typename tuple_type_at<_Index, _Types...>::type;
 
     // tuple_type_at_value
     //   function: retrieves the value at a specific index in a tuple instance.
-    template <std::size_t _Index,
+    template<std::size_t _Index,
               typename    _Tuple>
     constexpr auto tuple_type_at_value(const _Tuple& _t)
     {
@@ -171,7 +186,7 @@ NS_DJINTERP
 
     // tuple_concat
     //   function: concatenates multiple tuples at compile-time.
-    template <typename... _Tuples>
+    template<typename... _Tuples>
     static constexpr auto tuple_concat(_Tuples&&... _tuples)
     {
         return typename internal::tuple_join_helper<_Tuples...>::type{};
@@ -185,17 +200,17 @@ NS_DJINTERP
     // tuple_consolidate_types (internal helper)
     NS_INTERNAL
 
-        template <typename _Tuple,
+        template<typename _Tuple,
                   typename... _Result>
         struct tuple_consolidate_types_helper;
 
-        template <typename... _Types>
+        template<typename... _Types>
         struct tuple_consolidate_types_helper<std::tuple<>, _Types...>
         {
             using type = std::tuple<_Types...>;
         };
 
-        template <typename    _Head,
+        template<typename    _Head,
                   typename... _Tails,
                   typename... _Types>
         struct tuple_consolidate_types_helper<std::tuple<_Head, _Tails...>, _Types...>
@@ -216,7 +231,7 @@ NS_DJINTERP
 
     // tuple_consolidate_types
     //   type trait: consolidates repeated types in a tuple into arrays.
-    template <typename... _Types>
+    template<typename... _Types>
     struct tuple_consolidate_types
     {
         using type = typename internal::tuple_consolidate_types_helper<
@@ -226,19 +241,19 @@ NS_DJINTERP
 
     // tuple_consolidate_types_t
     //   alias template: shorthand for `tuple_consolidate_types<...>::type`.
-    template <typename... _Types>
+    template<typename... _Types>
     using tuple_consolidate_types_t = typename tuple_consolidate_types<_Types...>::type;
 
     // tuple_count_and_remove (internal helper)
     NS_INTERNAL
 
-        template <typename    _Type,
+        template<typename    _Type,
                   typename    _Tuple,
                   std::size_t _Count,
                   typename    _Filtered>
         struct tuple_count_and_remove_helper;
 
-        template <typename    _Type,
+        template<typename    _Type,
                   std::size_t _Count,
                   typename... _Filtered>
         struct tuple_count_and_remove_helper<_Type, std::tuple<>, _Count, std::tuple<_Filtered...>>
@@ -247,7 +262,7 @@ NS_DJINTERP
             using type = std::tuple<_Filtered...>;
         };
 
-        template <typename    _Type,
+        template<typename    _Type,
                   typename    _Head,
                   typename... _Tail,
                   std::size_t _Count,
@@ -268,7 +283,7 @@ NS_DJINTERP
 
     // tuple_count_and_remove
     //   type trait: counts occurrences of a type and removes them from a tuple.
-    template <typename    _Type,
+    template<typename    _Type,
               typename... _Types>
     struct tuple_count_and_remove
     {
@@ -287,14 +302,14 @@ NS_DJINTERP
 
     // tuple_count_and_remove_t
     //   alias template: shorthand for `tuple_count_and_remove<...>::type`.
-    template <typename    _Type,
+    template<typename    _Type,
               typename... _Types>
     using tuple_count_and_remove_t = typename tuple_count_and_remove<_Type, _Types...>::type;
 
     // tuple_count_and_remove_v
     //   
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template <typename    _Type,
+    template<typename    _Type,
               typename... _Types>
     constexpr std::size_t tuple_count_and_remove_v = tuple_count_and_remove<_Type, _Types...>::value;
 #endif
@@ -302,13 +317,13 @@ NS_DJINTERP
     // tuple_count_type (internal helper)
     NS_INTERNAL
 
-        template <typename    _Type,
+        template<typename    _Type,
                   typename    _Tuple,
                   std::size_t _Count>
         struct tuple_count_type_helper;
 
         // case: empty
-        template <typename    _Type,
+        template<typename    _Type,
                   std::size_t _Count>
         struct tuple_count_type_helper<_Type, std::tuple<>, _Count>
         {
@@ -316,7 +331,7 @@ NS_DJINTERP
         };
 
         // case: last element (or tuple of size 1)
-        template <typename    _Type,
+        template<typename    _Type,
                   typename    _Head,
                   std::size_t _Count>
         struct tuple_count_type_helper<_Type, std::tuple<_Head>, _Count>
@@ -329,7 +344,7 @@ NS_DJINTERP
         };
 
         // case: recursive
-        template <typename    _Type,
+        template<typename    _Type,
                   typename    _Head,
                   typename... _Tail,
                   std::size_t _Count>
@@ -350,7 +365,7 @@ NS_DJINTERP
 
     // tuple_count_type
     //   type trait: counts the number of occurrences of a type in a tuple.
-    template <typename    _Type,
+    template<typename    _Type,
               typename... _Types>
     struct tuple_count_type
     {
@@ -364,7 +379,7 @@ NS_DJINTERP
     // tuple_count_type_v
     //   
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template <typename    _Type,
+    template<typename    _Type,
               typename... _Types>
     constexpr std::size_t tuple_count_type_v = tuple_count_type<_Type, _Types...>::value;
 #endif
@@ -377,14 +392,14 @@ NS_DJINTERP
     // tuple_split (internal helper)
     NS_INTERNAL
 
-        template <std::size_t _Index,
+        template<std::size_t _Index,
                   typename    _Before,
                   typename    _After,
                   typename = void>
         struct tuple_split_helper;
 
         // index = 0
-        template <typename... _Before,
+        template<typename... _Before,
                   typename... _After>
         struct tuple_split_helper<0, std::tuple<_Before...>, std::tuple<_After...>>
         {
@@ -393,7 +408,7 @@ NS_DJINTERP
         };
 
         // recursive case
-        template <std::size_t _Index,
+        template<std::size_t _Index,
                   typename... _Before,
                   typename    _Type,
                   typename... _After>
@@ -415,7 +430,7 @@ NS_DJINTERP
     //    of size (N-I).
     // 2. An index of 0 results in an empty `before` and `after` equal to T.
     // 3. An index of N results in `before` equal to T and an empty `after`.
-    template <std::size_t _Index,
+    template<std::size_t _Index,
               typename... _Types>
     struct tuple_split
     {
@@ -432,21 +447,21 @@ NS_DJINTERP
 
     // tuple_split_t
     //   alias template: shorthand for `tuple_split<...>::type`.
-    template <std::size_t _Index,
+    template<std::size_t _Index,
               typename    _Tuple>
     using tuple_split_t = typename tuple_split<_Index, _Tuple>::type;
 
     // tuple_subsequence (internal helper)
     NS_INTERNAL
 
-        template <std::size_t _Start,
+        template<std::size_t _Start,
                   std::size_t _End,
                   typename    _Tuple,
                   typename... _Types>
         struct tuple_subsequence_helper;
 
         // Base case: Start index reaches End index
-        template <std::size_t _End,
+        template<std::size_t _End,
                   typename    _Tuple,
                   typename... _Types>
         struct tuple_subsequence_helper<_End, _End, _Tuple, _Types...>
@@ -455,7 +470,7 @@ NS_DJINTERP
         };
 
         // Recursive case
-        template <std::size_t _Start,
+        template<std::size_t _Start,
                   std::size_t _End,
                   typename    _Tuple,
                   typename    _First,
@@ -469,12 +484,12 @@ NS_DJINTERP
 
     // tuple_subsequence
     //   type trait: extracts a subsequence from a tuple between two indices.
-    template <std::size_t _Start,
+    template<std::size_t _Start,
               std::size_t _End,
               typename    _Tuple>
     struct tuple_subsequence;
 
-    template <std::size_t _Start,
+    template<std::size_t _Start,
               std::size_t _End,
               typename... _Types>
     struct tuple_subsequence<_Start, _End, std::tuple<_Types...>>
@@ -494,7 +509,7 @@ NS_DJINTERP
 
     // tuple_subsequence_t
     //   alias template: shorthand for `tuple_subsequence<...>::type`.
-    template <std::size_t _Start,
+    template<std::size_t _Start,
               std::size_t _End,
               typename    _Tuple>
     using tuple_subsequence_t = typename tuple_subsequence<_Start, _End, _Tuple>::type;
@@ -507,7 +522,7 @@ NS_DJINTERP
     // tuple_to_pack (internal helper)
     NS_INTERNAL
 
-        template <typename       _Tuple,
+        template<typename       _Tuple,
                   typename       _Fn,
                   std::size_t... _I>
         void tuple_to_pack_helper(_Tuple&& _tuple,
@@ -522,7 +537,7 @@ NS_DJINTERP
     // tuple_to_pack
     //   function: expands a tuple into a function call with the tuple elements
     // as arguments.
-    template <typename _Tuple,
+    template<typename _Tuple,
               typename _Fn>
     void tuple_to_pack(_Tuple&& _tuple,
                        _Fn&&    _func)
@@ -542,7 +557,7 @@ NS_DJINTERP
 
     // type_case
     //   type trait: represents a condition-type pair for use with type_selector.
-    template <bool     _Condition,
+    template<bool     _Condition,
               typename _Type>
     struct type_case
     {
@@ -553,7 +568,7 @@ NS_DJINTERP
     // type_selector
     //   type trait: selects a type based on the first matching condition in a
     // sequence of type_case instances.
-    template <typename... _TypeCases>
+    template<typename... _TypeCases>
     struct type_selector
     {
         using type = void;  // Default when no type_cases match
@@ -561,7 +576,7 @@ NS_DJINTERP
     };
 
     // Base case: no type_cases left
-    template <>
+    template<>
     struct type_selector<>
     {
         using type = void;
@@ -569,7 +584,7 @@ NS_DJINTERP
     };
 
     // Recursive case: process type_cases sequentially
-    template <bool        _Condition,
+    template<bool        _Condition,
               typename    _Type,
               typename... _RestTypeCases>
     struct type_selector<type_case<_Condition, _Type>, _RestTypeCases...>
@@ -584,13 +599,13 @@ NS_DJINTERP
 
     // type_select_t
     //   alias template: shorthand for `type_selector<...>::type`.
-    template <typename... _TypeCases>
+    template<typename... _TypeCases>
     using type_select_t = typename type_selector<_TypeCases...>::type;
 
     // type_matched_v
     //   
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template <typename... _TypeCases>
+    template<typename... _TypeCases>
     constexpr bool type_matched_v = type_selector<_TypeCases...>::matched;
 #endif
 
@@ -601,15 +616,15 @@ NS_DJINTERP
 
     // is_tuple_homogeneous
     //   type trait: evaluates whether all types in a tuple are the same.
-    template <typename _Tuple>
+    template<typename _Tuple>
     struct is_tuple_homogeneous : std::false_type
     {};
 
-    template <typename _Type>
+    template<typename _Type>
     struct is_tuple_homogeneous<std::tuple<_Type>> : std::true_type
     {};
 
-    template <typename    _Type,
+    template<typename    _Type,
               typename    _Type2,
               typename... _Types>
     struct is_tuple_homogeneous<std::tuple<_Type, _Type2, _Types...>>
@@ -621,13 +636,13 @@ NS_DJINTERP
     // is_tuple_homogeneous_v
     //   
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template <typename _Tuple>
+    template<typename _Tuple>
     constexpr bool is_tuple_homogeneous_v = is_tuple_homogeneous<_Tuple>::value;
 #endif
 
     // is_homogeneous
     //   function: runtime helper to check tuple homogeneity.
-    template <typename... _Types>
+    template<typename... _Types>
     static inline constexpr bool is_homogeneous(std::tuple<_Types...> const&)
     {
         return is_tuple_homogeneous<std::tuple<_Types...>>::value;

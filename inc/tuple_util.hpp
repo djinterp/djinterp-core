@@ -24,9 +24,8 @@
 
 #include <tuple>
 #include <type_traits>
-#include "..\env.h"
-#include "..\cpp_features.h"
 #include "..\djinterp.h"
+#include "..\cpp_features.h"
 
 
 NS_DJINTERP
@@ -35,27 +34,49 @@ NS_DJINTERP
     // I.   FORWARD DECLARATIONS
     // =========================================================================
 
-    template <typename... _Types> struct first_arg;
-    template <typename _Type>     struct first_arg<_Type>;
-    template <typename _Type,
-              typename... _Types> struct first_arg<_Type, _Types...>;
+    template<typename... _Types>
+    struct first_arg;
 
-    template <typename... _Types> struct is_single_arg;
-    template <typename _Type>     struct is_single_arg<_Type>;
+    template<typename _Type>
+    struct first_arg<_Type>;
 
-    template <typename _Type>     struct is_tuple;
-    template <typename... _Types> struct is_tuple<std::tuple<_Types...>>;
+    template<typename _Type,
+             typename... _Types>
+    struct first_arg<_Type, _Types...>;
 
-    template <typename... _Types> struct is_single_tuple_arg;
-    template <typename _Type>     struct is_single_tuple_arg<_Type>;
+    template<typename... _Types>
+    struct is_single_arg;
 
-    template <typename... _Types> struct to_tuple;
-    template <typename _Type>     struct to_tuple<_Type>;
+    template<typename _Type>
+    struct is_single_arg<_Type>;
 
-    template <template <typename> typename... _Modifiers> struct wrap_all;
-    template <template <typename> typename    _Modifier,
-              template <typename> typename... _Modifiers> struct wrap_all<_Modifier, _Modifiers...>;
-    template <> struct wrap_all<>;
+    template<typename _Type>
+    struct is_tuple;
+
+    template<typename... _Types>
+    struct is_tuple<std::tuple<_Types...>>;
+
+    template<typename... _Types>
+    struct is_single_tuple_arg;
+
+    template<typename _Type>
+    struct is_single_tuple_arg<_Type>;
+
+    template<typename... _Types>
+    struct to_tuple;
+
+    template<typename _Type>
+    struct to_tuple<_Type>;
+
+    template<template<typename> typename... _Modifiers>
+    struct wrap_all;
+
+    template<template<typename> typename    _Modifier,
+             template<typename> typename... _Modifiers>
+    struct wrap_all<_Modifier, _Modifiers...>;
+
+    template<>
+    struct wrap_all<>;
 
 
     // =========================================================================
@@ -65,16 +86,16 @@ NS_DJINTERP
     // first_arg
     //   type trait: given a parameter pack, determines the first parameter.
     // Member alias `type` is the type of the first argument in the pack.
-    template <typename... _Types>
+    template<typename... _Types>
     struct first_arg;
 
-    template <typename _Type>
+    template<typename _Type>
     struct first_arg<_Type>
     {
         using type = _Type;
     };
 
-    template <typename    _Type,
+    template<typename    _Type,
               typename... _Types>
     struct first_arg<_Type, _Types...>
     {
@@ -83,7 +104,7 @@ NS_DJINTERP
 
     // first_arg_t
     //   alias template: shorthand for `first_arg<_Types...>::type`.
-    template <typename... _Types>
+    template<typename... _Types>
     using first_arg_t = typename first_arg<_Types...>::type;
 
 
@@ -94,25 +115,25 @@ NS_DJINTERP
     // is_tuple
     //   type trait: evaluates to `std::true_type` if `_Type` is a `std::tuple`,
     // otherwise `std::false_type`.
-    template <typename _Type>
+    template<typename _Type>
     struct is_tuple : std::false_type
     {};
 
-    template <typename... _Types>
+    template<typename... _Types>
     struct is_tuple<std::tuple<_Types...>> : std::true_type
     {};
 
     // is_tuple_v
     //   
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template <typename _Type>
+    template<typename _Type>
     constexpr bool is_tuple_v = is_tuple<_Type>::value;
 #endif
 
     // is_single_tuple_arg
     //   type trait: evaluates to `std::true_type` if the parameter pack
     // consists of exactly one argument that is itself a `std::tuple`.
-    template <typename... _Types>
+    template<typename... _Types>
     struct is_single_tuple_arg : std::conditional<
         (sizeof...(_Types) == 1),
         is_tuple<typename std::tuple_element<0, std::tuple<_Types...>>::type>,
@@ -123,7 +144,7 @@ NS_DJINTERP
     // is_single_tuple_arg_v
     //   
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template <typename... _Types>
+    template<typename... _Types>
     constexpr bool is_single_tuple_arg_v = is_single_tuple_arg<_Types...>::value;
 #endif
 
@@ -135,7 +156,7 @@ NS_DJINTERP
     // abs_value
     //   type trait: computes the absolute value of a compile-time integral
     // constant.
-    template <typename _Type,
+    template<typename _Type,
               _Type    _N>
     struct abs_value
     {
@@ -148,7 +169,7 @@ NS_DJINTERP
     // abs_value_v
     //   
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template <typename _Type,
+    template<typename _Type,
               _Type    _N>
     constexpr _Type abs_value_v = abs_value<_Type, _N>::value;
 #endif
@@ -156,7 +177,7 @@ NS_DJINTERP
     // abs_value_to_size_t
     //   
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template <typename _Type,
+    template<typename _Type,
               _Type    _N>
     constexpr std::size_t abs_value_to_size_t =
         std::integral_constant<std::size_t, abs_value<_Type, _N>::value>::value;
@@ -172,7 +193,7 @@ NS_DJINTERP
     // If the parameter pack consists of a single `std::tuple` type, `to_tuple`
     // resolves to that tuple type directly. Otherwise, all arguments are
     // wrapped in a new `std::tuple`.
-    template <typename... _Types>
+    template<typename... _Types>
     struct to_tuple
     {
         using type = typename std::conditional<
@@ -182,7 +203,7 @@ NS_DJINTERP
         >::type;
     };
 
-    template <typename _Type>
+    template<typename _Type>
     struct to_tuple<_Type>
     {
         using type = typename std::conditional<
@@ -194,34 +215,34 @@ NS_DJINTERP
 
     // to_tuple_t
     //   alias template: shorthand for `to_tuple<_Types...>::type`.
-    template <typename... _Types>
+    template<typename... _Types>
     using to_tuple_t = typename to_tuple<_Types...>::type;
 
     // make_tuple_of
     //   type trait: creates a `std::tuple` containing `_Count` copies of
     // `_Type`.
-    template <typename    _Type,
+    template<typename    _Type,
               std::size_t _Count>
     struct make_tuple_of;
 
-    template <typename _Type>
+    template<typename _Type>
     struct make_tuple_of<_Type, 0>
     {
         using type = std::tuple<>;
     };
 
-    template <typename _Type>
+    template<typename _Type>
     struct make_tuple_of<_Type, 1>
     {
         using type = to_tuple_t<_Type>;
     };
 
-    template <typename    _Type,
+    template<typename    _Type,
               std::size_t _Count>
     struct make_tuple_of
     {
     private:
-        template <std::size_t... _Indices>
+        template<std::size_t... _Indices>
         static auto make_impl(std::index_sequence<_Indices...>)
         {
             // Use comma operator to expand _Indices but always produce _Type
@@ -234,14 +255,14 @@ NS_DJINTERP
 
     // make_tuple_of_t
     //   alias template: shorthand for `make_tuple_of<_Type, _Count>::type`.
-    template <typename    _Type,
+    template<typename    _Type,
               std::size_t _Count>
     using make_tuple_of_t = typename make_tuple_of<_Type, _Count>::type;
 
     // repeat (internal helper)
     NS_INTERNAL
 
-        template <typename      _Type,
+        template<typename      _Type,
                   std::size_t   _N,
                   typename... _Types>
         struct repeat_type_helper
@@ -249,7 +270,7 @@ NS_DJINTERP
             using type = typename repeat_type_helper<_Type, _N - 1, _Type, _Types...>::type;
         };
 
-        template <typename    _Type,
+        template<typename    _Type,
                   typename... _Types>
         struct repeat_type_helper<_Type, 0, _Types...>
         {
@@ -261,7 +282,7 @@ NS_DJINTERP
     // repeat
     //   type trait: creates a `std::tuple` by repeating `_Type` exactly
     // `_NumTimes` times.
-    template <typename    _Type,
+    template<typename    _Type,
               std::size_t _NumTimes>
     struct repeat
     {
@@ -274,7 +295,7 @@ NS_DJINTERP
 
     // repeat_t
     //   alias template: shorthand for `repeat<_Type, _NumTimes>::type`.
-    template <typename    _Type,
+    template<typename    _Type,
               std::size_t _NumTimes>
     using repeat_t = typename repeat<_Type, _NumTimes>::type;
 
@@ -287,34 +308,34 @@ NS_DJINTERP
     //   type trait: applies a series of type transformations left-to-right,
     // where right is the innermost and left is the outermost.
     // Example: wrap_all<X, Y, Z>::template type<int> == X<Y<Z<int>>>
-    template <template <typename> typename... _Modifiers>
+    template<template<typename> typename... _Modifiers>
     struct wrap_all
     {
-        template <typename _Type>
+        template<typename _Type>
         using type = _Type;
     };
 
-    template <template <typename> typename    _Modifier,
-              template <typename> typename... _Modifiers>
+    template<template<typename> typename    _Modifier,
+              template<typename> typename... _Modifiers>
     struct wrap_all<_Modifier, _Modifiers...>
     {
-        template <typename _Type>
+        template<typename _Type>
         using type = typename _Modifier<
             typename wrap_all<_Modifiers...>::template type<_Type>
         >::type;
     };
 
-    template <>
+    template<>
     struct wrap_all<>
     {
-        template <typename _Type>
+        template<typename _Type>
         using type = _Type;
     };
 
     // wrap_all_t
     //   alias template: shorthand for applying wrap_all.
-    template <typename                        _Type,
-              template <typename> typename... _Modifiers>
+    template<typename                        _Type,
+              template<typename> typename... _Modifiers>
     using wrap_all_t = typename wrap_all<_Modifiers...>::template type<_Type>;
 
     // to_lvalue_reference
@@ -322,7 +343,7 @@ NS_DJINTERP
     // existing reference first.
     struct to_lvalue_reference
     {
-        template <typename _Type>
+        template<typename _Type>
         using type = typename wrap_all<
             std::add_lvalue_reference,
             std::remove_reference
@@ -334,7 +355,7 @@ NS_DJINTERP
     // existing reference first.
     struct to_rvalue_reference
     {
-        template <typename _Type>
+        template<typename _Type>
         using type = typename wrap_all<
             std::add_rvalue_reference,
             std::remove_reference
@@ -346,7 +367,7 @@ NS_DJINTERP
     // pointer first.
     struct to_pointer
     {
-        template <typename _Type>
+        template<typename _Type>
         using type = typename wrap_all<
             std::add_pointer,
             std::remove_pointer
@@ -356,7 +377,7 @@ NS_DJINTERP
     // to_type
     //   type trait: identity wrapper that simply exposes a `type` member alias.
     // Useful for metaprogramming contexts where a type wrapper is expected.
-    template <typename _Type>
+    template<typename _Type>
     struct to_type
     {
         using type = _Type;
@@ -364,8 +385,59 @@ NS_DJINTERP
 
     // to_type_t
     //   alias template: shorthand for `to_type<_Type>::type`.
-    template <typename _Type>
+    template<typename _Type>
     using to_type_t = typename to_type<_Type>::type;
+
+    // tuple_all_elements_same_as
+    template<typename _Tuple, 
+             typename _Type>
+    struct tuple_all_elements_same_as;
+
+    template<typename   _Type, 
+            typename... _Es>
+    struct tuple_all_elements_same_as<std::tuple<_Es...>, _T>
+        : std::bool_constant<(std::is_same_v<clean_t<_Es>, _T> && ...)>
+    {};
+
+    // all_inner_tuple_elements_one_type
+    template<typename _Outer>
+    struct all_inner_tuple_elements_one_type : std::false_type
+    {};
+
+    template<>
+    struct all_inner_tuple_elements_one_type<std::tuple<>> : std::true_type
+    {};
+
+    // case: first inner is empty => true iff all inners are empty tuples
+    template<typename... _Ts>
+    struct all_inner_tuple_elements_one_type<std::tuple<std::tuple<>, _Ts...>>
+        : std::bool_constant<(std::is_same_v<normalize_tuple_t<std::tuple<>>, normalize_tuple_t<_Ts>> && ...)>
+    {};
+
+    // case: first inner non-empty => all inners non-empty and all elements match first element type
+    template<typename    _E0
+             typename... _Erest, 
+             typename... _Inners>
+    struct all_inner_tuple_elements_one_type<std::tuple<std::tuple<_E0, _Erest...>, _Inners...>>
+    {
+    private:
+        using first_elem_t = clean_t<_E0>;
+
+        template<typename _Inner>
+        static constexpr bool inner_ok =
+            ( is_tuple<clean_t<_Inner>>::value                   &&
+              (std::tuple_size_v<normalize_tuple_t<_Inner>> > 0) &&
+              tuple_all_elements_same_as<normalize_tuple_t<_Inner>, first_elem_t>::value )
+
+    public:
+        // check first inner also (it is known tuple<...> here)
+        static constexpr bool value = tuple_all_elements_same_as<std::tuple<_E0, _Erest...>,
+                                                                 first_elem_t>::value && 
+                                                                 (inner_ok<_Inners> && ...);
+    };
+
+    template<typename _Outer>
+    inline constexpr bool all_inner_tuple_elements_one_type_v = all_inner_tuple_elements_one_type<_Outer>::value;
 
 NS_END  // djinterp
 
