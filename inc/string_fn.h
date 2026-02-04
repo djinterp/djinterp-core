@@ -69,7 +69,7 @@ x.    Thread-safe error string
 #include ".\dmemory.h"
 
 
-// i.   Safe string copying & concatenation
+// i.    Safe string copying & concatenation
 int      d_strcpy_s(char* restrict _destination, size_t _dest_size, const char* restrict _src);
 int      d_strncpy_s(char* restrict _destination, size_t _dest_size, const char* restrict _src, size_t _count);
 int      d_strcat_s(char* restrict _destination, size_t _dest_size, const char* restrict _src);
@@ -107,3 +107,4 @@ int      d_strerror_r(int _errnum, char* _buf, size_t _buflen);
 
 
 #endif    // DJINTERP_STRING_FN_
+
