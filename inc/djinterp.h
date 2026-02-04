@@ -5,7 +5,7 @@
 * 
 * 
 * path:      \inc\djinterp.h
-* link:      TBA
+* link(s):   TBA
 * author(s): Sam 'teer' Neal-Blim                             date: 2023.11.12
 ******************************************************************************/
 
@@ -139,7 +139,8 @@ Do something with this, either here or in env.h OR in dconfig.h
     // `stdbool.h` has already been included, do nothing
 
 // #elif defined(D_ENV_LANG_IS_C23_OR_HIGHER) && D_ENV_LANG_IS_C23_OR_HIGHER()
-#elif defined(__STDC_VERSION__) && (__STDC_VERSION__ >= 202311L)
+#elif ( defined(__STDC_VERSION__) &&  \
+       (__STDC_VERSION__ >= 202311L) )
     // C23 or newer - bool is a built-in keyword
     // nothing to do, C23 has bool, true, false as keywords
 
@@ -302,7 +303,8 @@ typedef size_t (*fn_write)(char* const _buffer, size_t _size);
 #define D_KEYWORD_CONTAINER         container
 
 // D_KEYWORD_ERROR
-//   constant: keyword for invalid state. From Latin `errare` -- to wander.
+//   constant: keyword for invalid state. 
+// From Latin `errare` -- to wander.
 #define D_KEYWORD_ERROR		        error
 
 // D_KEYWORD_EXCEPTION
@@ -310,26 +312,46 @@ typedef size_t (*fn_write)(char* const _buffer, size_t _size);
 // Note the etymology -- from Latin `errare`: to wander.
 #define D_KEYWORD_EXCEPTION	        exception
 
+// D_KEYWORD_FUNCTIONAL
+//   keyword: resolves to `functional`.
+// Used to specify that a unit of code pertains to functional programming.
+#define D_KEYWORD_FUNCTIONAL       functional
+
 // D_KEYWORD_INTERNAL
 //   keyword: resolves to `internal`.
-// Used to specify that a unit of code is part of the `internal` namespace, hiding the details of implementation from regular use.
+// Used to specify that a unit of code is part of the `internal` namespace, 
+// hiding the details of implementation from regular use.
 #define D_KEYWORD_INTERNAL	        internal
 
-// D_KEYWORD_MESSAGE
-//   keyword: resolves to `message`.
-// Used for variables, macros, namespaces, etc. that convey (usually string-based) human-readable information that is conveyed to the user, often (but not limited to) debugging and error-handling.
-#define D_KEYWORD_MESSAGE	        message
+// D_KEYWORD_MATHS
+//   keyword: resolves to `maths`.
+// Used for variables, macros, namespaces, etc. that pertain to the `maths`
+// submodule.
+#define D_KEYWORD_MATHS	            maths
 
 // D_KEYWORD_MESSAGE
 //   keyword: resolves to `message`.
-// Used for variables, macros, namespaces, etc. that convey (usually string-based) human-readable information that is conveyed to the user, often (but not limited to) debugging and error-handling.
+// Used for variables, macros, namespaces, etc. that convey (usually string-
+// based) human-readable information that is conveyed to the user, often 
+// (but not limited to) debugging and error-handling.
+#define D_KEYWORD_MESSAGE	        message
+
+// D_KEYWORD_UI
+//   keyword: resolves to `ui`.
+// Used to specify that a unit of code is part of error handling, including 
+// messages.
+#define D_KEYWORD_USER_INTERFACE    ui
+
+// D_KEYWORD_MESSAGE
+//   keyword: resolves to `warning`.
+// Used to specify that the program has an anomalous state that is not 
+// necessarily the end of the world.
 #define D_KEYWORD_WARNING	        warning
 
 
 ///////////////////////////////////////////////////////////////////////////////
 ///                         I.   FUNDAMENTAL TYPES                          ///                 
 ///////////////////////////////////////////////////////////////////////////////
-
 
 /// I.ii.1.   Defined constants
 
@@ -419,9 +441,15 @@ typedef size_t (*fn_write)(char* const _buffer, size_t _size);
 // return the last element, -n would be 0.
 typedef ssize_t d_index;
 
-size_t d_index_convert_fast(d_index _index, size_t _count);
-bool   d_index_convert_safe(d_index _index, size_t _count, size_t* _destination);
-bool   d_index_is_valid(d_index _index, size_t _count);
+
+size_t d_index_convert_fast(d_index _index,
+                            size_t  _count);
+bool   d_index_convert_safe(d_index _index, 
+                            size_t  _count, 
+                            size_t* _destination);
+bool   d_index_is_valid(d_index _index, 
+                        size_t  _count);
+
 
 // D_ARRAY_TOTAL_SIZE
 //   macro: shorthand for calculating the total memory occupied, in bytes, of 
@@ -476,13 +504,20 @@ bool   d_index_is_valid(d_index _index, size_t _count);
 // equivalent positive index.
 // Note: only to be used on stack-allocated arrays whose size is known at
 // compile time.
-#define D_ARR_IDX(ARR, INDEX) \
+#define D_ARR_IDX(ARR, INDEX)           \
      (ARR)[(INDEX) < 0 ? ( (sizeof(ARR)/sizeof((ARR)[0])) + (INDEX) ) :  \
                                                             (INDEX)]
 
-/**********   IV.    namespaces   *******************/
-
 #ifdef __cplusplus
+    //#include <cstddef>
+    //#include <memory>
+
+/**********   IV.    namespaces   *******************/
+    // D_KEYWORD_CPP
+    //   keyword: resolves to `cpp`.
+    // Used to specify that a unit of code pertains to the C++ standard.
+    #define D_KEYWORD_CPP               cpp
+
     // D_KEYWORD_STL
     //   keyword: resolves to `stl`.
     // Used to specify that a unit of code pertains to the STL (Standard Template Library) part of the C++ 
@@ -495,75 +530,120 @@ bool   d_index_is_valid(d_index _index, size_t _count);
     // SFINAE for compile-time logic.
     #define D_KEYWORD_TRAITS            traits
 
-    // D_KEYWORD_UI
-    //   keyword: resolves to `ui`.
-    // Used to specify that a unit of code is part of error handling, including messages.
-    #define D_KEYWORD_USER_INTERFACE    ui
-
     // D_NAMESPACE
     //   macro: wraps a block of code in a namespace with the name specified by parameter `NAME`.
     #define D_NAMESPACE(NAME)	namespace NAME {
-
-    // NS_CONTAINER
-    //   namespace: used to indicate the `djinterp` top-level namespace.
-    // Should be used as the top-level namesapce of any and all modules within the djinterp tool-chain.
-    #define NS_CONTAINER		D_NAMESPACE(container)
-
-    // NS_DJINTERP
-    //   namespace: used to indicate the `djinterp` top-level namespace.
-    // Should be used as the top-level namesapce of any and all modules within the djinterp tool-chain.
-    #define NS_DJINTERP			D_NAMESPACE(D_KEY_FRAMEWORK_NAME)
 
     // NS_END
     //   Namespace idiom; used to close any namespace.
     #define NS_END				};
 
+    // NS_CONTAINER
+    //   namespace: used to indicate the `djinterp` top-level namespace.
+    // Should be used as the top-level namesapce of any and all modules within the djinterp tool-chain.
+    #define NS_CONTAINER		D_NAMESPACE(D_KEYWORD_CONTAINER)
+
+    // NS_DJINTERP
+    //   namespace: used to indicate the `djinterp` top-level namespace.
+    // Should be used as the top-level namesapce of any and all modules within the djinterp tool-chain.
+    #define NS_DJINTERP			D_NAMESPACE(D_KEYWORD_FRAMEWORK_NAME)
+
     // NS_ERROR
     //   
-    #define NS_ERROR			D_NAMESPACE(D_KEY_ERROR)
+    #define NS_ERROR			D_NAMESPACE(D_KEYWORD_ERROR)
 
     // NS_EXCEPTION
     //   
-    #define NS_EXCEPTION		D_NAMESPACE(D_KEY_EXCEPTION)
+    #define NS_EXCEPTION		D_NAMESPACE(D_KEYWORD_EXCEPTION)
+
+    // NS_EXCEPTION
+    //   
+    #define NS_FUNCTIONAL		D_NAMESPACE(D_KEYWORD_FUNCTIONAL)
 
     // NS_INTERNAL
     //   namespace: declares an `internal` namespace.
     // Used to hide any messy implementation details from regular use, such as "helper" types, structs and functions.
     // Should be closed with `NS_END`.
-    #define NS_INTERNAL			D_NAMESPACE(D_KEY_INTERNAL)
+    #define NS_INTERNAL			D_NAMESPACE(D_KEYWORD_INTERNAL)
+
+    // NS_MATHS
+    //   namespace: used for the `maths` submodule namespace for C++.
+    #define NS_MATHS			D_NAMESPACE(D_KEYWORD_MATHS)
 
     // NS_MESSAGE
     //   namespace: used for variables, macros, namespaces, etc. that convey (usually string-based) human-readable information that is conveyed to the user.
     // These messages are often (but not limited to) debugging and error-handling.
-    #define NS_MESSAGE			D_NAMESPACE(D_KEY_MESSAGE)
+    #define NS_MESSAGE			D_NAMESPACE(D_KEYWORD_MESSAGE)
 
     // NS_STL
     //   
-    #define NS_STL			    D_NAMESPACE(D_KEY_STL)
+    #define NS_STL			    D_NAMESPACE(D_KEYWORD_STL)
 
-    // NS_END
+    // NS_TRAITS
     //   
-    #define NS_TRAITS			D_NAMESPACE(D_KEY_TRAITS)
+    #define NS_TRAITS			D_NAMESPACE(D_KEYWORD_TRAITS)
 
     // Macro version if inline functions aren't supported
     #ifndef D_NO_INLINE
         #ifdef _MSC_VER
-            #define D_MEMCPY_S(dest, dest_size, src, count) \
+            #define D_MEMCPY_S(dest, dest_size, src, count)       \
                 ((memcpy_s((dest), (dest_size), (src), (count)) == 0) ? D_SUCCESS : D_FAILURE)
         #else
-            #define D_MEMCPY_S(dest, dest_size, src, count) \
-                (((dest) && (src) && ((count) <= (dest_size))) ? \
+            #define D_MEMCPY_S(dest, dest_size, src, count)       \
+                (((dest) && (src) && ((count) <= (dest_size))) ?  \
                     (memcpy((dest), (src), (count)), D_SUCCESS) : D_FAILURE)
-        #endif
+        #endif  // _MSC_VER
+    #endif  // D_NO_INLINE
+
+NS_DJINTERP
+
+    // abs_value
+    //   type trait: computes the absolute value of a compile-time integral
+    // constant.
+    template<typename _Type,
+              _Type   _N>
+    struct abs_value
+    {
+        static_assert(std::is_integral<_Type>::value,
+                      "Type parameter `_Type` must be an integral type.");
+
+        static constexpr _Type value = (_N < 0) 
+                                       ? -_N
+                                       : _N;
+    };
+
+    //
+    #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
+        // abs_value_v
+        //   
+        template<typename _Type,
+                  _Type    _N>
+        constexpr _Type abs_value_v = abs_value<_Type, _N>::value;
     #endif
 
-    // clean_type
-    //   type alias: short-hand to strip cv-qualifiers and references for a type.
+    // 
+    #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
+        // abs_value_to_size_t
+        //   
+        template<typename _Type,
+                  _Type   _N>
+        constexpr std::size_t abs_value_to_size_t =
+            std::integral_constant<std::size_t, abs_value<_Type, _N>::value>::value;
+    #endif
+
+    // clean
+    //   type modifier: strips cv-qualifiers and references
     template<typename _Type>
-    using clean_type = std::remove_cv_t<std::remove_reference_t<_Type>>;
+    struct clean
+    {
+        using type = std::remove_cv_t<std::remove_reference_t<_Type>>;
+    };
 
+    template<typename _Type>
+    using clean_t = clean<_Type>::type;
+
+    // repeat_type_helper (needed for repeat)
     NS_INTERNAL
-
         template<typename    _Type,
                  std::size_t _N,
                  typename... _Types>
@@ -626,14 +706,14 @@ bool   d_index_is_valid(d_index _index, size_t _count);
         using type = _Type;
     };
 
-    // Basic self resolution
+    // basic self resolution
     template<typename _ResolveTo>
     struct resolve_self<self, _ResolveTo> 
     {
         using type = _ResolveTo;
     };
 
-    // Smart pointer specializations
+    // smart pointer specializations
     template<typename _ResolveTo>
     struct resolve_self<std::unique_ptr<self>, _ResolveTo> 
     {
@@ -652,14 +732,14 @@ bool   d_index_is_valid(d_index _index, size_t _count);
         using type = std::weak_ptr<_ResolveTo>;
     };
 
-    // Raw pointer specialization
+    // raw pointer specialization
     template<typename _ResolveTo>
     struct resolve_self<self*, _ResolveTo> 
     {
         using type = _ResolveTo*;
     };
 
-    // Repeat resolution - recursively resolve the repeated type
+    // repeat resolution - recursively resolve the repeated type
     template<typename    _Type, 
              std::size_t _NumTimes, 
              typename    _ResolveTo>
@@ -669,11 +749,17 @@ bool   d_index_is_valid(d_index _index, size_t _count);
         using type = repeat_t<resolved_inner, _NumTimes>;
     };
 
-    // Convenience alias
+    // convenience alias
     template<typename _Type,
              typename _ResolveTo>
     using resolve_self_t = typename resolve_self<_Type, _ResolveTo>::type;
 
+    template<typename...>
+    using void_t = void;
+
+NS_END  // djinterp
+
 #endif	// __cplusplus
+
 
 #endif	// DJINTERP_
