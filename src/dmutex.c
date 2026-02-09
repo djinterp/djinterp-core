@@ -7,7 +7,7 @@
 * link:      TBA
 * author(s): Samuel 'teer' Neal-Blim                          date: 2025.02.06
 ******************************************************************************/
-#include "..\inc\dmutex.h
+#include "..\inc\dmutex.h"
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -1265,7 +1265,7 @@ d_rwlock_init
     struct d_rwlock_t* _rwlock
 )
 {
-    int result = pthread_rwlock_init(_rwlock, NULL);
+    int result = pthread_rwlock_init(&_rwlock->rwlock, NULL);
     return (result == 0) ? D_MUTEX_SUCCESS : D_MUTEX_ERROR;
 }
 
@@ -1275,7 +1275,7 @@ d_rwlock_destroy
     struct d_rwlock_t* _rwlock
 )
 {
-    int result = pthread_rwlock_destroy(_rwlock);
+    int result = pthread_rwlock_destroy(&_rwlock->rwlock);
     return (result == 0) ? D_MUTEX_SUCCESS : D_MUTEX_ERROR;
 }
 
@@ -1285,7 +1285,7 @@ d_rwlock_rdlock
     struct d_rwlock_t* _rwlock
 )
 {
-    int result = pthread_rwlock_rdlock(_rwlock);
+    int result = pthread_rwlock_rdlock(&_rwlock->rwlock);
     return (result == 0) ? D_MUTEX_SUCCESS : D_MUTEX_ERROR;
 }
 
@@ -1295,7 +1295,7 @@ d_rwlock_tryrdlock
     struct d_rwlock_t* _rwlock
 )
 {
-    int result = pthread_rwlock_tryrdlock(_rwlock);
+    int result = pthread_rwlock_tryrdlock(&_rwlock->rwlock);
     if (result == 0)
         return D_MUTEX_SUCCESS;
     else if (result == EBUSY)
@@ -1310,7 +1310,7 @@ d_rwlock_wrlock
     struct d_rwlock_t* _rwlock
 )
 {
-    int result = pthread_rwlock_wrlock(_rwlock);
+    int result = pthread_rwlock_wrlock(&_rwlock->rwlock);
     return (result == 0) ? D_MUTEX_SUCCESS : D_MUTEX_ERROR;
 }
 
@@ -1320,7 +1320,7 @@ d_rwlock_trywrlock
     struct d_rwlock_t* _rwlock
 )
 {
-    int result = pthread_rwlock_trywrlock(_rwlock);
+    int result = pthread_rwlock_trywrlock(&_rwlock->rwlock);
     if (result == 0)
         return D_MUTEX_SUCCESS;
     else if (result == EBUSY)
@@ -1335,7 +1335,7 @@ d_rwlock_unlock
     struct d_rwlock_t* _rwlock
 )
 {
-    return (pthread_rwlock_unlock(_rwlock) == 0)
+    return (pthread_rwlock_unlock(&_rwlock->rwlock) == 0)
         ? D_MUTEX_SUCCESS
         : D_MUTEX_ERROR;
 }
@@ -1348,7 +1348,7 @@ d_rwlock_timedrdlock
 )
 {
     #ifdef _POSIX_TIMEOUTS
-        int result = pthread_rwlock_timedrdlock(_rwlock, _timeout);
+        int result = pthread_rwlock_timedrdlock(&_rwlock->rwlock, _timeout);
 
         if (result == 0)
         {
@@ -1377,7 +1377,7 @@ d_rwlock_timedwrlock
 )
 {
     #ifdef _POSIX_TIMEOUTS
-        int result = pthread_rwlock_timedwrlock(_rwlock, _timeout);
+        int result = pthread_rwlock_timedwrlock(&_rwlock->rwlock, _timeout);
 
         if (result == 0)
         {
@@ -1407,7 +1407,7 @@ d_rwlock_init
     struct d_rwlock_t* _rwlock
 )
 {
-    InitializeSRWLock(_rwlock);
+    InitializeSRWLock(&_rwlock->srwlock);
 
     return D_MUTEX_SUCCESS;
 }
@@ -1429,7 +1429,7 @@ d_rwlock_rdlock
     struct d_rwlock_t* _rwlock
 )
 {
-    AcquireSRWLockShared(_rwlock);
+    AcquireSRWLockShared(&_rwlock->srwlock);
 
     return D_MUTEX_SUCCESS;
 }
@@ -1440,7 +1440,7 @@ d_rwlock_tryrdlock
     struct d_rwlock_t* _rwlock
 )
 {
-    BOOLEAN result = TryAcquireSRWLockShared(_rwlock);
+    BOOLEAN result = TryAcquireSRWLockShared(&_rwlock->srwlock);
 
     return result 
         ? D_MUTEX_SUCCESS
@@ -1453,7 +1453,7 @@ d_rwlock_wrlock
     struct d_rwlock_t* _rwlock
 )
 {
-    AcquireSRWLockExclusive(_rwlock);
+    AcquireSRWLockExclusive(&_rwlock->srwlock);
 
     return D_MUTEX_SUCCESS;
 }
@@ -1464,7 +1464,7 @@ d_rwlock_trywrlock
     struct d_rwlock_t* _rwlock
 )
 {
-    BOOLEAN result = TryAcquireSRWLockExclusive(_rwlock);
+    BOOLEAN result = TryAcquireSRWLockExclusive(&_rwlock->srwlock);
 
     return result
         ? D_MUTEX_SUCCESS
@@ -1479,7 +1479,7 @@ d_rwlock_unlock
 {
     // Need to track whether we have read or write lock - limitation of API
     // For now, try exclusive unlock first, then shared
-    ReleaseSRWLockExclusive(_rwlock);
+    ReleaseSRWLockExclusive(&_rwlock->srwlock);
 
     return D_MUTEX_SUCCESS;
 }

@@ -170,11 +170,11 @@ IX.   UTILITY FUNCTIONS
 #elif D_MUTEX_HAS_PTHREAD
     typedef pthread_mutex_t d_mutex_t;
 #elif D_MUTEX_HAS_WINDOWS_THREADS
-    struct d_mutex_t
+    typedef struct d_mutex_t
     {
         HANDLE handle;
         bool   is_recursive;
-    };
+    } d_mutex_t;
 #else
     #error "No mutex implementation available for this platform"
 #endif
@@ -198,11 +198,11 @@ IX.   UTILITY FUNCTIONS
 #elif D_MUTEX_HAS_PTHREAD
     typedef pthread_t d_thread_t;
 #elif D_MUTEX_HAS_WINDOWS_THREADS
-    struct d_thread_t
+    typedef struct d_thread_t
     {
         HANDLE handle;
         DWORD  id;
-    };
+    } d_thread_t;
 #else
     typedef unsigned long d_thread_t;
 #endif
@@ -224,17 +224,17 @@ IX.   UTILITY FUNCTIONS
 #elif D_MUTEX_HAS_WINDOWS_THREADS && D_MUTEX_HAS_WINDOWS_CONDITION_VARIABLE
     typedef CONDITION_VARIABLE d_cond_t;
 #elif D_MUTEX_HAS_WINDOWS_THREADS
-    struct d_cond_t
+    typedef struct d_cond_t
     {
         HANDLE event;
         int    waiters_count;
         CRITICAL_SECTION waiters_count_lock;
-    };
+    } d_cond_t;
 #else
-    struct d_cond_t
+    typedef struct d_cond_t
     {
         int dummy;
-    };
+    } d_cond_t;
 #endif
 
 // d_tss_t
@@ -268,10 +268,10 @@ typedef void (*d_tss_dtor_t)(void*);
 
     #define D_ONCE_FLAG_INIT INIT_ONCE_STATIC_INIT
 #else
-    struct d_once_flag_t 
+    typedef struct d_once_flag_t 
     {
         volatile int done;
-    };
+    } d_once_flag_t;
 
     #define D_ONCE_FLAG_INIT {0}
 #endif
@@ -279,14 +279,20 @@ typedef void (*d_tss_dtor_t)(void*);
 // struct d_rwlock_t
 //   type: read-write lock
 #if D_MUTEX_HAS_PTHREAD
-    typedef pthread_rwlock_t struct d_rwlock_t;
+    typedef struct d_rwlock_t
+    {
+        pthread_rwlock_t rwlock;
+    } d_rwlock_t;
 
 #elif D_MUTEX_HAS_WINDOWS_THREADS && D_MUTEX_HAS_WINDOWS_SRWLOCK
-    typedef SRWLOCK struct d_rwlock_t;
+    typedef struct d_rwlock_t
+    {
+        SRWLOCK srwlock;
+    } d_rwlock_t;
 
-    #define D_RWLOCK_INIT SRWLOCK_INIT
+    #define D_RWLOCK_INIT { SRWLOCK_INIT }
 #else
-    struct struct d_rwlock_t
+    typedef struct d_rwlock_t
     {
         d_mutex_t mutex;
         d_cond_t  readers_cond;
@@ -294,7 +300,7 @@ typedef void (*d_tss_dtor_t)(void*);
         int       readers;
         int       writers;
         int       waiting_writers;
-    };
+    } d_rwlock_t;
 #endif
 
 // Return value constants
