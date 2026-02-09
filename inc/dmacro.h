@@ -17,7 +17,6 @@
 /*
 TABLE OF CONTENTS
 =================
-
 0.    CONFIGURATION SYSTEM
       --------------------
       1.  User-Overridable Settings
@@ -142,17 +141,17 @@ VII.  CORE ITERATION INFRASTRUCTURE
 VIII. FOR_EACH IMPLEMENTATIONS
       ------------------------
       1.  Basic Iteration
-          a.  D_FOR_EACH           - fn(a) fn(b) fn(c)
-          b.  D_FOR_EACH_COMMA     - fn(a), fn(b), fn(c)
-          c.  D_FOR_EACH_SEP       - fn(a) sep fn(b) sep fn(c)
-          d.  D_FOR_EACH_SEMICOLON - fn(a); fn(b); fn(c);
-          e.  D_FOR_EACH_SPACE     - fn(a) fn(b) fn(c)
+          a.  D_FOR_EACH              - fn(a)  fn(b)  fn(c)
+          b.  D_FOR_EACH_COMMA        - fn(a), fn(b), fn(c)
+          c.  D_FOR_EACH_SEP          - fn(a) sep fn(b) sep fn(c)
+          d.  D_FOR_EACH_SEMICOLON    - fn(a); fn(b); fn(c);
+          e.  D_FOR_EACH_SPACE        - fn(a)  fn(b)  fn(c)
       2.  Pair Iteration (2-tuples)
           a.  D_FOR_EACH_PAIR         - fn(a,b) fn(c,d)
           b.  D_FOR_EACH_PAIR_COMMA   - fn(a,b), fn(c,d)
           c.  D_FOR_EACH_PAIR_SEP     - fn(a,b) sep fn(c,d)
       3.  Triple Iteration (3-tuples)
-          a.  D_FOR_EACH_TRIPLE       - fn(a,b,c) fn(d,e,f)
+          a.  D_FOR_EACH_TRIPLE       - fn(a,b,c)  fn(d,e,f)
           b.  D_FOR_EACH_TRIPLE_COMMA - fn(a,b,c), fn(d,e,f)
           c.  D_FOR_EACH_TRIPLE_SEP   - fn(a,b,c) sep fn(d,e,f)
       4.  4-Tuple Iteration
@@ -209,6 +208,7 @@ XIII. COMPILE-TIME ASSERTIONS
           a.  D_ASSERT_SAME_SIZE
 */
 
+
 #ifndef DJINTERP_MACRO_
 #define DJINTERP_MACRO_ 1
 
@@ -239,11 +239,11 @@ XIII. COMPILE-TIME ASSERTIONS
 
 // D_CFG_DMACRO_VARG_MIN
 //   brief: minimum supported variadic argument count (64)
-#define D_CFG_DMACRO_VARG_MIN 64
+#define D_CFG_DMACRO_VARG_MIN     64
 
 // D_CFG_DMACRO_VARG_LIMIT
 //   brief: absolute maximum supported by the framework (1024)
-#define D_CFG_DMACRO_VARG_LIMIT 1024
+#define D_CFG_DMACRO_VARG_LIMIT   1024
 
 // supported variant levels (must match available *N.h files)
 #define D_CFG_DMACRO_VARIANT_64   64
@@ -493,7 +493,6 @@ XIII. COMPILE-TIME ASSERTIONS
     #include "./core/macro/for_each_pair1024.h"
     #include "./core/macro/for_each_3_tuple1024.h"
     #include "./core/macro/for_each_4_tuple1024.h"
-
 #endif
 
 
@@ -599,7 +598,7 @@ XIII. COMPILE-TIME ASSERTIONS
 ///////////////////////////////////////////////////////////////////////////////
 
 // D_VARG_GET_FIRST through D_VARG_GET_TENTH
-//   macro (alias): convenience names for positional argument extraction
+//   macro (alias): convenience names for positional argument extraction.
 #define D_VARG_GET_FIRST(...)   D_VARG_GET_ARG_1(__VA_ARGS__)
 #define D_VARG_GET_SECOND(...)  D_VARG_GET_ARG_2(__VA_ARGS__)
 #define D_VARG_GET_THIRD(...)   D_VARG_GET_ARG_3(__VA_ARGS__)
@@ -630,9 +629,14 @@ XIII. COMPILE-TIME ASSERTIONS
 #define D_VARG_LAST(...) \
     D_INTERNAL_VARG_GET_N(D_VARG_COUNT(__VA_ARGS__), __VA_ARGS__)
 
-// parentheses handling
-#define D_VARGS_REMOVE_PARENTHESES_IMPL(...) __VA_ARGS__
-#define D_VARGS_REMOVE_PARENTHESES(...) D_VARGS_REMOVE_PARENTHESES_IMPL(__VA_ARGS__)
+// D_INTERNAL_VARGS_REMOVE_PARENTHESES_HELPER
+//   macro: 
+#define D_INTERNAL_VARGS_REMOVE_PARENTHESES_HELPER(...) __VA_ARGS__
+
+// D_VARGS_REMOVE_PARENTHESES
+//   macro: 
+#define D_VARGS_REMOVE_PARENTHESES(arg)  \
+    D_INTERNAL_VARGS_REMOVE_PARENTHESES_HELPER arg
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -720,29 +724,79 @@ XIII. COMPILE-TIME ASSERTIONS
 ///////////////////////////////////////////////////////////////////////////////
 
 // D_INC
-//   macro: increment a number token (0-63 -> 1-64)
-#define D_INC(x)  \
+//   macro: increments a number token (0-63 -> 1-64).
+#define D_INC(x)                                                            \
     D_CONCAT(D_INTERNAL_INC_, x)
 
-// Map termination detection (for recursive implementations)
+// map termination detection (for recursive implementations)
+
+// D_INTERNAL_MAP_END
+//   macro: sentinel macro that terminates recursive map expansion.
 #define D_INTERNAL_MAP_END(...)
+
+// D_INTERNAL_MAP_OUT
+//   macro: helper expansion token for map recursion (expands to nothing).
 #define D_INTERNAL_MAP_OUT
-#define D_INTERNAL_MAP_GET_END() 0, D_INTERNAL_MAP_END
-#define D_INTERNAL_MAP_NEXT0(item, next, ...) next D_INTERNAL_MAP_OUT
-#define D_INTERNAL_MAP_NEXT1(item, next) D_INTERNAL_MAP_NEXT0(item, next, 0)
-#define D_INTERNAL_MAP_NEXT(item, next) D_INTERNAL_MAP_NEXT1(D_INTERNAL_MAP_GET_END item, next)
 
-// Core mapping with data parameter (for D_FOR_EACH_DATA)
-#define D_INTERNAL_MAP_DATA0(f, data, x, peek, ...) f(data, x)                \
-    D_INTERNAL_MAP_NEXT(peek, D_INTERNAL_MAP_DATA1)(f, data, peek, __VA_ARGS__)
-#define D_INTERNAL_MAP_DATA1(f, data, x, peek, ...) f(data, x)                \
-    D_INTERNAL_MAP_NEXT(peek, D_INTERNAL_MAP_DATA0)(f, data, peek, __VA_ARGS__)
+// D_INTERNAL_MAP_GET_END
+//   macro: expands to `0, D_INTERNAL_MAP_END` for end-marker detection.
+#define D_INTERNAL_MAP_GET_END()                                            \
+    0, D_INTERNAL_MAP_END
 
-// Indexed mapping (for D_FOR_EACH_INDEXED)
-#define D_INTERNAL_MAP_IDX0(f, i, x, peek, ...) f(i, x)                       \
-    D_INTERNAL_MAP_NEXT(peek, D_INTERNAL_MAP_IDX1)(f, D_INC(i), peek, __VA_ARGS__)
-#define D_INTERNAL_MAP_IDX1(f, i, x, peek, ...) f(i, x)                       \
-    D_INTERNAL_MAP_NEXT(peek, D_INTERNAL_MAP_IDX0)(f, D_INC(i), peek, __VA_ARGS__)
+// D_INTERNAL_MAP_NEXT0
+//   macro: selects the continuation macro via argument shifting.
+#define D_INTERNAL_MAP_NEXT0(item, next, ...)                               \
+    next D_INTERNAL_MAP_OUT
+
+// D_INTERNAL_MAP_NEXT1
+//   macro: wraps D_INTERNAL_MAP_NEXT0 to enable end-marker detection.
+#define D_INTERNAL_MAP_NEXT1(item, next)                                    \
+    D_INTERNAL_MAP_NEXT0(item, next, 0)
+
+// D_INTERNAL_MAP_NEXT
+//   macro: resolves to the next map worker (or END) based on `peek`.
+#define D_INTERNAL_MAP_NEXT(item, next)                                     \
+    D_INTERNAL_MAP_NEXT1(D_INTERNAL_MAP_GET_END item, next)
+
+// core mapping with data parameter (for D_FOR_EACH_DATA)
+
+// D_INTERNAL_MAP_DATA0
+//   macro: data-mapping worker (even step) for D_FOR_EACH_DATA.
+#define D_INTERNAL_MAP_DATA0(f, data, x, peek, ...)                         \
+    f(data, x)                                                              \
+    D_INTERNAL_MAP_NEXT(peek, D_INTERNAL_MAP_DATA1)(f,                      \
+                                                    data,                   \
+                                                    peek,                   \
+                                                    __VA_ARGS__)
+
+// D_INTERNAL_MAP_DATA1
+//   macro: data-mapping worker (odd step) for D_FOR_EACH_DATA.
+#define D_INTERNAL_MAP_DATA1(f, data, x, peek, ...)                         \
+    f(data, x)                                                              \
+    D_INTERNAL_MAP_NEXT(peek, D_INTERNAL_MAP_DATA0)(f,                      \
+                                                    data,                   \
+                                                    peek,                   \
+                                                    __VA_ARGS__)
+
+// indexed mapping (for D_FOR_EACH_INDEXED)
+
+// D_INTERNAL_MAP_IDX0
+//   macro: indexed mapping worker (even step); applies f(i, x) then increments i.
+#define D_INTERNAL_MAP_IDX0(f, i, x, peek, ...)                             \
+    f(i, x)                                                                 \
+    D_INTERNAL_MAP_NEXT(peek, D_INTERNAL_MAP_IDX1)(f,                       \
+                                                   D_INC(i),                \
+                                                   peek,                    \
+                                                   __VA_ARGS__)
+
+// D_INTERNAL_MAP_IDX1
+//   macro: indexed mapping worker (odd step); applies f(i, x) then increments i.
+#define D_INTERNAL_MAP_IDX1(f, i, x, peek, ...)                             \
+    f(i, x)                                                                 \
+    D_INTERNAL_MAP_NEXT(peek, D_INTERNAL_MAP_IDX0)(f,                       \
+                                                   D_INC(i),                \
+                                                   peek,                    \
+                                                   __VA_ARGS__)
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -756,30 +810,32 @@ XIII. COMPILE-TIME ASSERTIONS
 // D_FOR_EACH
 //   macro: apply function to each element with no separator.
 // Usage: D_FOR_EACH(fn, a, b, c) -> fn(a) fn(b) fn(c)
-#define D_FOR_EACH(_fn, ...)                                                 \
-    D_CONCAT(D_INTERNAL_FOR_EACH_SEPARATOR_, D_VARG_COUNT(__VA_ARGS__))(_fn, D_EMPTY, __VA_ARGS__)
-
-// D_FOR_EACH_COMMA
-//   macro: apply function to each element, comma-separated.
-// Usage: D_FOR_EACH_COMMA(fn, a, b, c) -> fn(a), fn(b), fn(c)
-#define D_FOR_EACH_COMMA(_fn, ...)                                           \
-    D_CONCAT(D_INTERNAL_FOR_EACH_SEPARATOR_, D_VARG_COUNT(__VA_ARGS__))(_fn, D_SEPARATOR_COMMA, __VA_ARGS__)
-
-// D_FOR_EACH_SEMICOLON
-//   macro: apply function to each element, semicolon-separated.
-#define D_FOR_EACH_SEMICOLON(_fn, ...) \
-    D_FOR_EACH_SEP(_fn, D_SEPARATOR_SEMICOLON, __VA_ARGS__)
+#define D_FOR_EACH(_fn, ...)                                                \
+    D_CONCAT(D_INTERNAL_FOR_EACH_SEPARATOR_,                                \
+             D_VARG_COUNT(__VA_ARGS__))(_fn, D_EMPTY, __VA_ARGS__)
 
 // D_FOR_EACH_SPACE
 //   macro: alias for D_FOR_EACH (space/no separator).
-#define D_FOR_EACH_SPACE(_fn, ...) \
+#define D_FOR_EACH_SPACE(_fn, ...)                                          \
     D_FOR_EACH(_fn, __VA_ARGS__)
 
 // D_FOR_EACH_SEP
 //   macro: apply function to each element with custom separator.
 // Usage: D_FOR_EACH_SEP(;, fn, a, b, c) -> fn(a); fn(b); fn(c)
 #define D_FOR_EACH_SEP(_sep, _fn, ...) \
-    D_CONCAT(D_INTERNAL_FOR_EACH_SEPARATOR_, D_VARG_COUNT(__VA_ARGS__))(_fn, _sep, __VA_ARGS__)
+    D_CONCAT(D_INTERNAL_FOR_EACH_SEPARATOR_,                                \
+             D_VARG_COUNT(__VA_ARGS__))(_fn, _sep, __VA_ARGS__)
+
+// D_FOR_EACH_COMMA
+//   macro: apply function to each element, comma-separated.
+// Usage: D_FOR_EACH_COMMA(fn, a, b, c) -> fn(a), fn(b), fn(c)
+#define D_FOR_EACH_COMMA(_fn, ...)                                          \
+    D_FOR_EACH_SEP(D_SEPARATOR_COMMA, _fn, __VA_ARGS__)
+
+// D_FOR_EACH_SEMICOLON
+//   macro: apply function to each element, semicolon-separated.
+#define D_FOR_EACH_SEMICOLON(_fn, ...)                                      \
+    D_FOR_EACH_SEP(D_SEPARATOR_SEMICOLON, _fn, __VA_ARGS__)
 
 
 // -----------------------------------------------------------------------------
@@ -788,34 +844,43 @@ XIII. COMPILE-TIME ASSERTIONS
 
 // D_INTERNAL_PAIR_COUNT
 //   macro (internal): compute number of pairs from arg count.
-#define D_INTERNAL_PAIR_COUNT(...) \
+#define D_INTERNAL_PAIR_COUNT(...)                                          \
     (D_VARG_COUNT(__VA_ARGS__) / 2)
 
 // D_FOR_EACH_PAIR
 //   macro: apply function to each pair with no separator.
 // Usage: D_FOR_EACH_PAIR(fn, a, 1, b, 2) -> fn(a, 1) fn(b, 2)
-#define D_FOR_EACH_PAIR(_fn, ...) \
-    D_CONCAT(D_INTERNAL_FOR_EACH_2_TUPLE_SEPARATOR_, D_INTERNAL_PAIR_COUNT(__VA_ARGS__))(_fn, D_EMPTY, __VA_ARGS__)
+#define D_FOR_EACH_PAIR(_fn, ...)                                           \
+    D_CONCAT(D_INTERNAL_FOR_EACH_2_TUPLE_SEPARATOR_,                        \
+             D_INTERNAL_PAIR_COUNT(__VA_ARGS__))(_fn,                       \
+                                                 D_EMPTY,                   \
+                                                 __VA_ARGS__)
 
 // D_FOR_EACH_PAIR_COMMA
 //   macro: apply function to each pair, comma-separated.
-#define D_FOR_EACH_PAIR_COMMA(_fn, ...) \
-    D_CONCAT(D_INTERNAL_FOR_EACH_2_TUPLE_SEPARATOR_, D_INTERNAL_PAIR_COUNT(__VA_ARGS__))(_fn, D_SEPARATOR_COMMA, __VA_ARGS__)
-
+#define D_FOR_EACH_PAIR_COMMA(_fn, ...)                                     \
+    D_CONCAT(D_INTERNAL_FOR_EACH_2_TUPLE_SEPARATOR_,                        \
+             D_INTERNAL_PAIR_COUNT(__VA_ARGS__))(_fn,                       \
+                                                 D_SEPARATOR_COMMA,         \
+                                                 __VA_ARGS__)
 // D_FOR_EACH_PAIR_SEMICOLON
 //   macro: apply function to each element, semicolon-separated.
-#define D_FOR_EACH_PAIR_SEMICOLON(_fn, ...) \
-    D_CONCAT(D_INTERNAL_FOR_EACH_2_TUPLE_SEPARATOR_, D_INTERNAL_PAIR_COUNT(__VA_ARGS__))(_fn, D_SEPARATOR_SEMICOLON, __VA_ARGS__)
+#define D_FOR_EACH_PAIR_SEMICOLON(_fn, ...)                                 \
+    D_CONCAT(D_INTERNAL_FOR_EACH_2_TUPLE_SEPARATOR_,                        \
+             D_INTERNAL_PAIR_COUNT(__VA_ARGS__))(_fn,                       \
+                                                 D_SEPARATOR_SEMICOLON,     \
+                                                 __VA_ARGS__)
 
 // D_FOR_EACH_SPACE
 //   macro: alias for D_FOR_EACH (space/no separator).
-#define D_FOR_EACH_PAIR_SPACE(_fn, ...)  \
+#define D_FOR_EACH_PAIR_SPACE(_fn, ...)                                     \
     D_FOR_EACH_PAIR(_fn, __VA_ARGS__)
 
 // D_FOR_EACH_PAIR_SEP
 //   macro: apply function to each pair with custom separator.
-#define D_FOR_EACH_PAIR_SEP(_fn, _sep, ...) \
-    D_CONCAT(D_INTERNAL_FOR_EACH_2_TUPLE_SEPARATOR_, D_INTERNAL_PAIR_COUNT(__VA_ARGS__))(_fn, _sep, __VA_ARGS__)
+#define D_FOR_EACH_PAIR_SEP(_fn, _sep, ...)                                 \
+    D_CONCAT(D_INTERNAL_FOR_EACH_2_TUPLE_SEPARATOR_,                        \
+             D_INTERNAL_PAIR_COUNT(__VA_ARGS__))(_fn, _sep, __VA_ARGS__)
 
 
 // -----------------------------------------------------------------------------
@@ -824,24 +889,27 @@ XIII. COMPILE-TIME ASSERTIONS
 
 // D_INTERNAL_TRIPLE_COUNT
 //   macro (internal): compute number of triples from arg count.
-#define D_INTERNAL_TRIPLE_COUNT(...) \
+#define D_INTERNAL_TRIPLE_COUNT(...)                                        \
     (D_VARG_COUNT(__VA_ARGS__) / 3)
 
 // D_FOR_EACH_TRIPLE
 //   macro: apply function to each triple with no separator.
 // Usage: D_FOR_EACH_TRIPLE(fn, a, b, c, d, e, f) -> fn(a,b,c) fn(d,e,f)
-#define D_FOR_EACH_TRIPLE(_fn, ...) \
-    D_CONCAT(D_INTERNAL_FOR_EACH_TRIPLE_, D_INTERNAL_TRIPLE_COUNT(__VA_ARGS__))(_fn, __VA_ARGS__)
+#define D_FOR_EACH_TRIPLE(_fn, ...)                                         \
+    D_CONCAT(D_INTERNAL_FOR_EACH_TRIPLE_,                                   \
+             D_INTERNAL_TRIPLE_COUNT(__VA_ARGS__))(_fn, __VA_ARGS__)
 
 // D_FOR_EACH_TRIPLE_COMMA
 //   macro: apply function to each triple, comma-separated.
-#define D_FOR_EACH_TRIPLE_COMMA(_fn, ...) \
-    D_CONCAT(D_INTERNAL_FOR_EACH_TRIPLE_COMMA_, D_INTERNAL_TRIPLE_COUNT(__VA_ARGS__))(_fn, __VA_ARGS__)
+#define D_FOR_EACH_TRIPLE_COMMA(_fn, ...)                                   \
+    D_CONCAT(D_INTERNAL_FOR_EACH_TRIPLE_COMMA_,                             \
+             D_INTERNAL_TRIPLE_COUNT(__VA_ARGS__))(_fn, __VA_ARGS__)
 
 // D_FOR_EACH_TRIPLE_SEP
 //   macro: apply function to each triple with custom separator.
-#define D_FOR_EACH_TRIPLE_SEP(_sep, _fn, ...) \
-    D_CONCAT(D_INTERNAL_FOR_EACH_TRIPLE_SEP_, D_INTERNAL_TRIPLE_COUNT(__VA_ARGS__))(_sep, _fn, __VA_ARGS__)
+#define D_FOR_EACH_TRIPLE_SEP(_sep, _fn, ...)                               \
+    D_CONCAT(D_INTERNAL_FOR_EACH_TRIPLE_SEP_,                               \
+             D_INTERNAL_TRIPLE_COUNT(__VA_ARGS__))(_sep, _fn, __VA_ARGS__)
 
 
 // -----------------------------------------------------------------------------
@@ -850,24 +918,27 @@ XIII. COMPILE-TIME ASSERTIONS
 
 // D_INTERNAL_4TUPLE_COUNT
 //   macro (internal): compute number of 4-tuples from arg count.
-#define D_INTERNAL_4TUPLE_COUNT(...) \
+#define D_INTERNAL_4TUPLE_COUNT(...)                                        \
     (D_VARG_COUNT(__VA_ARGS__) / 4)
 
 // D_FOR_EACH_4TUPLE
 //   macro: apply function to each 4-tuple with no separator.
 // Usage: D_FOR_EACH_4TUPLE(fn, a,b,c,d, e,f,g,h) -> fn(a,b,c,d) fn(e,f,g,h)
-#define D_FOR_EACH_4TUPLE(_fn, ...) \
-    D_CONCAT(D_INTERNAL_FOR_EACH_4TUPLE_, D_INTERNAL_4TUPLE_COUNT(__VA_ARGS__))(_fn, __VA_ARGS__)
+#define D_FOR_EACH_4TUPLE(_fn, ...)                                         \
+    D_CONCAT(D_INTERNAL_FOR_EACH_4TUPLE_,                                   \
+             D_INTERNAL_4TUPLE_COUNT(__VA_ARGS__))(_fn, __VA_ARGS__)
 
 // D_FOR_EACH_4TUPLE_COMMA
 //   macro: apply function to each 4-tuple, comma-separated.
-#define D_FOR_EACH_4TUPLE_COMMA(_fn, ...) \
-    D_CONCAT(D_INTERNAL_FOR_EACH_4TUPLE_COMMA_, D_INTERNAL_4TUPLE_COUNT(__VA_ARGS__))(_fn, __VA_ARGS__)
+#define D_FOR_EACH_4TUPLE_COMMA(_fn, ...)                                   \
+    D_CONCAT(D_INTERNAL_FOR_EACH_4TUPLE_COMMA_,                             \
+             D_INTERNAL_4TUPLE_COUNT(__VA_ARGS__))(_fn, __VA_ARGS__)
 
 // D_FOR_EACH_4TUPLE_SEP
 //   macro: apply function to each 4-tuple with custom separator.
-#define D_FOR_EACH_4TUPLE_SEP(_sep, _fn, ...) \
-    D_CONCAT(D_INTERNAL_FOR_EACH_4TUPLE_SEP_, D_INTERNAL_4TUPLE_COUNT(__VA_ARGS__))(_sep, _fn, __VA_ARGS__)
+#define D_FOR_EACH_4TUPLE_SEP(_sep, _fn, ...)                               \
+    D_CONCAT(D_INTERNAL_FOR_EACH_4TUPLE_SEP_,                               \
+             D_INTERNAL_4TUPLE_COUNT(__VA_ARGS__))(_sep, _fn, __VA_ARGS__)
 
 
 // -----------------------------------------------------------------------------
