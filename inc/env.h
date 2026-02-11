@@ -26,12 +26,12 @@
 * 
 *
 * path:      \inc\env.h                                           
-* link:      TBA
+* link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                          date: 2023.03.27
 ******************************************************************************/
 
-#ifndef DJINTERP_C_ENVIRONMENT_
-#define DJINTERP_C_ENVIRONMENT_ 1
+#ifndef DJINTERP_ENVIRONMENT_
+#define DJINTERP_ENVIRONMENT_ 1
 
 
 // =============================================================================
@@ -48,165 +48,7 @@
     #define D_CFG_ENV_CUSTOM 0
 #endif
 
-// section bit positions for D_CFG_ENV_CUSTOM bitfield
-#define D_CFG_ENV_BIT_LANG     0x01  // bit 0: language standard detection
-#define D_CFG_ENV_BIT_POSIX    0x02  // bit 1: POSIX standards detection
-#define D_CFG_ENV_BIT_COMPILER 0x04  // bit 2: compiler detection  
-#define D_CFG_ENV_BIT_OS       0x08  // bit 3: operating system detection
-#define D_CFG_ENV_BIT_ARCH     0x10  // bit 4: architecture detection
-#define D_CFG_ENV_BIT_BUILD    0x20  // bit 5: build configuration detection
-
-// auto-detection: check for pre-defined D_ENV_DETECTED_* variables
-// and automatically set corresponding section bits in D_CFG_ENV_CUSTOM
-#if (D_CFG_ENV_CUSTOM > 0)
-    // I - language settings
-    // detect C and/or CPP
-    #if ( defined(D_ENV_DETECTED_CPP98) ||  \
-          defined(D_ENV_DETECTED_CPP11) ||  \
-          defined(D_ENV_DETECTED_CPP14) ||  \
-          defined(D_ENV_DETECTED_CPP17) ||  \
-          defined(D_ENV_DETECTED_CPP20) ||  \
-          defined(D_ENV_DETECTED_CPP23) )   
-        #define D_CFG_ENV_DETECTED_CPP  1   
-                                            
-    #elif ( defined(D_ENV_DETECTED_C95) ||  \
-            defined(D_ENV_DETECTED_C99) ||  \
-            defined(D_ENV_DETECTED_C11) ||  \
-            defined(D_ENV_DETECTED_C17) ||  \
-            defined(D_ENV_DETECTED_C23) )
-        #define D_CFG_ENV_DETECTED_C_ONLY   1
-    #endif  // defined(D_CFG_ENV_DETECTED_CPP/C_ONLY)
-
-    #if ( defined(D_CFG_ENV_DETECTED_CPP) ||  \
-          defined(D_CFG_ENV_DETECTED_C_ONLY) )  
-        #define D_TEMP_CFG_ENV_CUSTOM_VAL D_CFG_ENV_CUSTOM
-        #undef  D_CFG_ENV_CUSTOM
-        #define D_CFG_ENV_CUSTOM \
-                (D_TEMP_CFG_ENV_CUSTOM_VAL | D_CFG_ENV_BIT_LANG)
-        #undef D_TEMP_CFG_ENV_CUSTOM_VAL
-    #endif 
-
-    // POSIX standards detection variables
-    #if ( defined(D_ENV_DETECTED_POSIX_1988)     ||  \
-          defined(D_ENV_DETECTED_POSIX_1990)     ||  \
-          defined(D_ENV_DETECTED_POSIX_1993)     ||  \
-          defined(D_ENV_DETECTED_POSIX_1996)     ||  \
-          defined(D_ENV_DETECTED_POSIX_2001)     ||  \
-          defined(D_ENV_DETECTED_POSIX_2008)     ||  \
-          defined(D_ENV_DETECTED_POSIX_2017)     ||  \
-          defined(D_ENV_DETECTED_POSIX_2024)     ||  \
-          defined(D_ENV_DETECTED_POSIX_XSI)      ||  \
-          defined(D_ENV_DETECTED_POSIX_THREADS)  ||  \
-          defined(D_ENV_DETECTED_POSIX_REALTIME) ||  \
-          defined(D_ENV_DETECTED_POSIX_SOCKETS)  ||  \
-          defined(D_ENV_DETECTED_POSIX_NONE) )
-        #define D_TEMP_CFG_ENV_CUSTOM_VAL D_CFG_ENV_CUSTOM
-        #undef  D_CFG_ENV_CUSTOM
-        #define D_CFG_ENV_CUSTOM \
-                (D_TEMP_CFG_ENV_CUSTOM_VAL | D_CFG_ENV_BIT_POSIX)
-        #undef D_TEMP_CFG_ENV_CUSTOM_VAL
-    #endif
-
-    // compiler detection variables  
-    #if ( defined(D_ENV_DETECTED_COMPILER_CLANG)       ||  \
-          defined(D_ENV_DETECTED_COMPILER_APPLE_CLANG) ||  \
-          defined(D_ENV_DETECTED_COMPILER_GCC)         ||  \
-          defined(D_ENV_DETECTED_COMPILER_MSVC)        ||  \
-          defined(D_ENV_DETECTED_COMPILER_INTEL)       ||  \
-          defined(D_ENV_DETECTED_COMPILER_BORLAND)     ||  \
-          defined(D_ENV_DETECTED_COMPILER_UNKNOWN) )
-        #define D_TEMP_CFG_ENV_CUSTOM_VAL D_CFG_ENV_CUSTOM
-        #undef  D_CFG_ENV_CUSTOM
-        #define D_CFG_ENV_CUSTOM  \
-                (D_TEMP_CFG_ENV_CUSTOM_VAL | D_CFG_ENV_BIT_COMPILER)
-        #undef D_TEMP_CFG_ENV_CUSTOM_VAL
-    #endif
-
-    #if defined(D_ENV_DETECTED_COMPILER_MSVC)
-        #define D_ENV_CRT_MSVC 1
-        #define D_ENV_MSC_VER  _MSC_VER
-    #else
-        #define D_ENV_CRT_MSVC 0
-        #define D_ENV_MSC_VER  0
-    #endif
-
-    // operating system detection variables
-    #if ( defined(D_ENV_DETECTED_OS_APPLE)   ||  \
-          defined(D_ENV_DETECTED_OS_MACOS)   ||  \
-          defined(D_ENV_DETECTED_OS_IOS)     ||  \
-          defined(D_ENV_DETECTED_OS_LINUX)   ||  \
-          defined(D_ENV_DETECTED_OS_ANDROID) ||  \
-          defined(D_ENV_DETECTED_OS_WINDOWS) ||  \
-          defined(D_ENV_DETECTED_OS_BSD)     ||  \
-          defined(D_ENV_DETECTED_OS_SOLARIS) ||  \
-          defined(D_ENV_DETECTED_OS_UNIX)    ||  \
-          defined(D_ENV_DETECTED_OS_MSDOS)   ||  \
-          defined(D_ENV_DETECTED_OS_UNKNOWN) )
-        #define D_TEMP_CFG_ENV_CUSTOM_VAL D_CFG_ENV_CUSTOM
-        #undef  D_CFG_ENV_CUSTOM
-        #define D_CFG_ENV_CUSTOM \
-                (D_TEMP_CFG_ENV_CUSTOM_VAL | D_CFG_ENV_BIT_OS)
-        #undef D_TEMP_CFG_ENV_CUSTOM_VAL
-    #endif
-
-    // architecture detection variables
-    #if ( defined(D_ENV_DETECTED_ARCH_X86)     ||  \
-          defined(D_ENV_DETECTED_ARCH_X64)     ||  \
-          defined(D_ENV_DETECTED_ARCH_ARM)     ||  \
-          defined(D_ENV_DETECTED_ARCH_ARM64)   ||  \
-          defined(D_ENV_DETECTED_ARCH_RISCV)   ||  \
-          defined(D_ENV_DETECTED_ARCH_POWERPC) ||  \
-          defined(D_ENV_DETECTED_ARCH_MIPS)    ||  \
-          defined(D_ENV_DETECTED_ARCH_SPARC)   ||  \
-          defined(D_ENV_DETECTED_ARCH_S390)    ||  \
-          defined(D_ENV_DETECTED_ARCH_IA64)    ||  \
-          defined(D_ENV_DETECTED_ARCH_ALPHA)   ||  \
-          defined(D_ENV_DETECTED_ARCH_UNKNOWN) )
-        #define D_TEMP_CFG_ENV_CUSTOM_VAL D_CFG_ENV_CUSTOM
-        #undef  D_CFG_ENV_CUSTOM
-        #define D_CFG_ENV_CUSTOM \
-                (D_TEMP_CFG_ENV_CUSTOM_VAL | D_CFG_ENV_BIT_ARCH)
-        #undef D_TEMP_CFG_ENV_CUSTOM_VAL
-    #endif
-
-    // build configuration detection variables
-    #if ( defined(D_ENV_DETECTED_BUILD_DEBUG)   || \
-          defined(D_ENV_DETECTED_BUILD_RELEASE) )
-        #define D_TEMP_CFG_ENV_CUSTOM_VAL D_CFG_ENV_CUSTOM
-        #undef  D_CFG_ENV_CUSTOM
-        #define D_CFG_ENV_CUSTOM \
-                (D_TEMP_CFG_ENV_CUSTOM_VAL | D_CFG_ENV_BIT_BUILD)
-        #undef D_TEMP_CFG_ENV_CUSTOM_VAL
-    #endif
-#endif  // (D_CFG_ENV_CUSTOM != 1)
-
-// individual section enable flags for easy checking
-#define D_CFG_ENV_
-
-#define D_CFG_ENV_LANG_ENABLED      \
-    ( (D_CFG_ENV_CUSTOM == 0) ||    \
-      (!(D_CFG_ENV_CUSTOM & D_CFG_ENV_BIT_LANG)) )
-
-#define D_CFG_ENV_POSIX_ENABLED     \
-    ( (D_CFG_ENV_CUSTOM == 0) ||    \
-      (!(D_CFG_ENV_CUSTOM & D_CFG_ENV_BIT_POSIX)) )
-
-#define D_CFG_ENV_COMPILER_ENABLED  \
-    ( (D_CFG_ENV_CUSTOM == 0) ||    \
-      (!(D_CFG_ENV_CUSTOM & D_CFG_ENV_BIT_COMPILER)) )
-
-#define D_CFG_ENV_OS_ENABLED        \
-    ( (D_CFG_ENV_CUSTOM == 0) ||    \
-      (!(D_CFG_ENV_CUSTOM & D_CFG_ENV_BIT_OS)) )
-
-#define D_CFG_ENV_ARCH_ENABLED      \
-    ( (D_CFG_ENV_CUSTOM == 0) ||    \
-      (!(D_CFG_ENV_CUSTOM & D_CFG_ENV_BIT_ARCH)) )
-
-#define D_CFG_ENV_BUILD_IS_ENABLED     \
-    ( (D_CFG_ENV_CUSTOM == 0) ||    \
-      (!(D_CFG_ENV_CUSTOM & D_CFG_ENV_BIT_BUILD)) )
-
+#include ".\core\config\config_env.h"
 
 // =============================================================================
 // II.  LANGUAGE ENVIRONMENT 
@@ -311,24 +153,24 @@
     #endif
 
     #if defined(D_ENV_DETECTED_C23)
-        #define D_ENV_LANG_C_STANDARD      D_ENV_LANG_C_STANDARD_C23
-        #define D_ENV_LANG_C_STANDARD_NAME "C23"
+        #define D_ENV_LANG_C_STANDARD        D_ENV_LANG_C_STANDARD_C23
+        #define D_ENV_LANG_C_STANDARD_NAME   "C23"
     #elif defined(D_ENV_DETECTED_C17)
-        #define D_ENV_LANG_C_STANDARD      D_ENV_LANG_C_STANDARD_C17
-        #define D_ENV_LANG_C_STANDARD_NAME "C17"
+        #define D_ENV_LANG_C_STANDARD        D_ENV_LANG_C_STANDARD_C17
+        #define D_ENV_LANG_C_STANDARD_NAME   "C17"
     #elif defined(D_ENV_DETECTED_C11)
-        #define D_ENV_LANG_C_STANDARD      D_ENV_LANG_C_STANDARD_C11
-        #define D_ENV_LANG_C_STANDARD_NAME "C11"
+        #define D_ENV_LANG_C_STANDARD        D_ENV_LANG_C_STANDARD_C11
+        #define D_ENV_LANG_C_STANDARD_NAME   "C11"
     #elif defined(D_ENV_DETECTED_C99)
-        #define D_ENV_LANG_C_STANDARD      D_ENV_LANG_C_STANDARD_C99
-        #define D_ENV_LANG_C_STANDARD_NAME "C99"
+        #define D_ENV_LANG_C_STANDARD        D_ENV_LANG_C_STANDARD_C99
+        #define D_ENV_LANG_C_STANDARD_NAME   "C99"
     #elif defined(D_ENV_DETECTED_C95)
-        #define D_ENV_LANG_C_STANDARD      D_ENV_LANG_C_STANDARD_C95
-        #define D_ENV_LANG_C_STANDARD_NAME "C95"
+        #define D_ENV_LANG_C_STANDARD        D_ENV_LANG_C_STANDARD_C95
+        #define D_ENV_LANG_C_STANDARD_NAME   "C95"
     #else
         // fallback when no manual C standard is specified
-        #define D_ENV_LANG_C_STANDARD      199000L
-        #define D_ENV_LANG_C_STANDARD_NAME "C90"
+        #define D_ENV_LANG_C_STANDARD        199000L
+        #define D_ENV_LANG_C_STANDARD_NAME   "C90"
     #endif  
 
 #endif  // D_CFG_ENV_LANG_ENABLED
@@ -338,32 +180,32 @@
     #define D_ENV_LANG_USING_CPP 1
 
     // D_ENV_LANG_IS_CPP98_OR_HIGHER
-    //   macro: 
+    //   macro: evaluates to 1 if detected C++ standard is C++98 or later.
     #define D_ENV_LANG_IS_CPP98_OR_HIGHER  \
         (D_ENV_LANG_CPP_STANDARD >= D_ENV_LANG_CPP_STANDARD_CPP98)
 
     // D_ENV_LANG_IS_CPP11_OR_HIGHER
-    //   macro: 
+    //   macro: evaluates to 1 if detected C++ standard is C++11 or later.
     #define D_ENV_LANG_IS_CPP11_OR_HIGHER  \
         (D_ENV_LANG_CPP_STANDARD >= D_ENV_LANG_CPP_STANDARD_CPP11)
 
     // D_ENV_LANG_IS_CPP14_OR_HIGHER
-    //   macro: 
+    //   macro: evaluates to 1 if detected C++ standard is C++14 or later.
     #define D_ENV_LANG_IS_CPP14_OR_HIGHER  \
         (D_ENV_LANG_CPP_STANDARD >= D_ENV_LANG_CPP_STANDARD_CPP14)
 
     // D_ENV_LANG_IS_CPP17_OR_HIGHER
-    //   macro: 
+    //   macro: evaluates to 1 if detected C++ standard is C++17 or later.
     #define D_ENV_LANG_IS_CPP17_OR_HIGHER  \
         (D_ENV_LANG_CPP_STANDARD >= D_ENV_LANG_CPP_STANDARD_CPP17)
 
     // D_ENV_LANG_IS_CPP20_OR_HIGHER
-    //   macro: 
+    //   macro: evaluates to 1 if detected C++ standard is C++20 or later.
     #define D_ENV_LANG_IS_CPP20_OR_HIGHER  \
         (D_ENV_LANG_CPP_STANDARD >= D_ENV_LANG_CPP_STANDARD_CPP20)
 
     // D_ENV_LANG_IS_CPP23_OR_HIGHER
-    //   macro: 
+    //   macro: evaluates to 1 if detected C++ standard is C++23 or later.
     #define D_ENV_LANG_IS_CPP23_OR_HIGHER  \
         (D_ENV_LANG_CPP_STANDARD >= D_ENV_LANG_CPP_STANDARD_CPP23)
 #else
@@ -377,27 +219,27 @@
 #endif  // D_ENV_LANG_C_STANDARD
 
 // D_ENV_LANG_IS_C95_OR_HIGHER
-//   macro: 
+//   macro: evaluates to 1 if detected C standard is C95 or later.
 #define D_ENV_LANG_IS_C95_OR_HIGHER  \
     (D_ENV_LANG_C_STANDARD >= D_ENV_LANG_C_STANDARD_C95)
 
 // D_ENV_LANG_IS_C99_OR_HIGHER
-//   macro: 
+//   macro: evaluates to 1 if detected C standard is C99 or later.
 #define D_ENV_LANG_IS_C99_OR_HIGHER  \
     (D_ENV_LANG_C_STANDARD >= D_ENV_LANG_C_STANDARD_C99)
 
 // D_ENV_LANG_IS_C11_OR_HIGHER
-//   macro: 
+//   macro: evaluates to 1 if detected C standard is C11 or later.
 #define D_ENV_LANG_IS_C11_OR_HIGHER  \
     (D_ENV_LANG_C_STANDARD >= D_ENV_LANG_C_STANDARD_C11)
 
 // D_ENV_LANG_IS_C17_OR_HIGHER
-//   macro: 
+//   macro: evaluates to 1 if detected C standard is C17 or later.
 #define D_ENV_LANG_IS_C17_OR_HIGHER  \
     (D_ENV_LANG_C_STANDARD >= D_ENV_LANG_C_STANDARD_C17)
 
 // D_ENV_LANG_IS_C23_OR_HIGHER
-//   macro: 
+//   macro: evaluates to 1 if detected C standard is C23 or later.
 #define D_ENV_LANG_IS_C23_OR_HIGHER  \
     (D_ENV_LANG_C_STANDARD >= D_ENV_LANG_C_STANDARD_C23)
 
@@ -717,7 +559,7 @@
 
 #endif  // D_CFG_ENV_POSIX_ENABLED
 
-//POSIX utility macros
+// POSIX utility macros
 
 // D_ENV_POSIX_IS_AVAILABLE
 //   macro: evaluates to 1 if any POSIX standard is detected, 0 otherwise.
@@ -828,8 +670,8 @@
         #define D_ENV_COMPILER_VERSION_STRING   "MSVC"
 
     // Intel C++
-    #elif ( defined(__INTEL_COMPILER) ||    \
-            defined(__ICL)            ||    \
+    #elif ( defined(__INTEL_COMPILER) ||  \
+            defined(__ICL)            ||  \
             defined(__ICC) )
         #define D_ENV_COMPILER_INTEL 1
         #define D_ENV_COMPILER_NAME            "Intel C++"
@@ -945,7 +787,7 @@
               (__cpp_va_opt >= 201803L) )
             #define D_ENV_PP_HAS_VA_OPT 1
         #else
-            #define D_ENV_PP_HAS_VA_OPT 1
+            #define D_ENV_PP_HAS_VA_OPT 0
         #endif  // defined(__cpp_va_opt) && (__cpp_va_opt >= 201803L)
     #else
         // detection method: when __VA_OPT__ is supported and __VA_ARGS__ is non-empty,
@@ -1544,6 +1386,27 @@
      (OS_FLAG) == D_ENV_OS_FLAG_MACOS           ||  \
      (OS_FLAG) == D_ENV_OS_FLAG_ANDROID)
 
+// D_ENV_IS_OS_POSIX_LIKE
+//   macro: true for Unix-family (incl. Linux), Apple-family, and
+// BSD-family OSes. covers the core set of OSes expected to provide
+// traditional POSIX headers and functions.
+#define D_ENV_IS_OS_POSIX_LIKE(OS_FLAG)             \
+    (D_ENV_IS_OS_FLAG_UNIX(OS_FLAG)             ||  \
+     D_ENV_IS_OS_FLAG_IN_BLOCK(OS_FLAG, 0x0)    ||  \
+     D_ENV_IS_OS_FLAG_IN_BLOCK(OS_FLAG, 0x4))
+
+// D_ENV_IS_OS_POSIX_LIKE_OR_ANDROID
+//   macro: POSIX-like plus Android (which provides most POSIX APIs).
+#define D_ENV_IS_OS_POSIX_LIKE_OR_ANDROID(OS_FLAG)  \
+    (D_ENV_IS_OS_POSIX_LIKE(OS_FLAG)            ||  \
+     (OS_FLAG) == D_ENV_OS_FLAG_ANDROID)
+
+// D_ENV_IS_OS_POSIX_LIKE_OR_WINDOWS
+//   macro: POSIX-like plus Windows (for APIs available on both).
+#define D_ENV_IS_OS_POSIX_LIKE_OR_WINDOWS(OS_FLAG)  \
+    (D_ENV_IS_OS_POSIX_LIKE(OS_FLAG)            ||  \
+     D_ENV_IS_OS_WINDOWS(OS_FLAG))
+
 // OS detection logic
 #if D_CFG_ENV_OS_ENABLED
     #ifndef D_ENV_OS_ID
@@ -1575,6 +1438,8 @@
 
         // Windows variants
         #elif defined(_WIN64)
+            #define D_ENV_OS_USING_WINDOWS64 1
+
             #define D_ENV_OS_ID    D_ENV_OS_FLAG_WIN_PC_10
             #define D_ENV_OS_NAME  "Windows (64-bit)"
 
@@ -1746,11 +1611,7 @@
 // D_ENV_C_HAS_PTHREAD
 //   feature: detect if POSIX threads (pthreads) are available
 #ifndef D_ENV_C_HAS_PTHREAD
-    #if ( D_ENV_IS_OS_FLAG_UNIX(D_ENV_OS_ID)              ||  \
-          (D_ENV_OS_ID == D_ENV_OS_FLAG_LINUX)            ||  \
-          D_ENV_IS_OS_FLAG_IN_BLOCK(D_ENV_OS_ID, 0x0)     ||  \
-          D_ENV_IS_OS_FLAG_IN_BLOCK(D_ENV_OS_ID, 0x4)     ||  \
-          (D_ENV_OS_ID == D_ENV_OS_FLAG_ANDROID)          )
+    #if D_ENV_IS_OS_POSIX_LIKE_OR_ANDROID(D_ENV_OS_ID)
         #define D_ENV_C_HAS_PTHREAD 1
     #else
         #define D_ENV_C_HAS_PTHREAD 0
@@ -1825,14 +1686,11 @@
 #endif
 
 // D_ENV_C_HAS_STDALIGN_H
-//   feature: detect if stdalign.h is available (C11+)
+//   feature: detect if stdalign.h is available (C11+; deprecated in C23
+// where alignof/alignas are keywords, but header still exists)
 #ifndef D_ENV_C_HAS_STDALIGN_H
     #if D_ENV_LANG_IS_C11_OR_HIGHER
-        #if !defined(__STDC_NO_ALIGNOF__)
-            #define D_ENV_C_HAS_STDALIGN_H 1
-        #else
-            #define D_ENV_C_HAS_STDALIGN_H 0
-        #endif
+        #define D_ENV_C_HAS_STDALIGN_H 1
     #else
         #define D_ENV_C_HAS_STDALIGN_H 0
     #endif
@@ -1856,11 +1714,7 @@
 // D_ENV_C_HAS_UNISTD_H
 //   feature: detect if unistd.h is available (POSIX systems)
 #ifndef D_ENV_C_HAS_UNISTD_H
-    #if ( D_ENV_IS_OS_FLAG_UNIX(D_ENV_OS_ID)              ||  \
-          (D_ENV_OS_ID == D_ENV_OS_FLAG_LINUX)            ||  \
-          D_ENV_IS_OS_FLAG_IN_BLOCK(D_ENV_OS_ID, 0x0)     ||  \
-          D_ENV_IS_OS_FLAG_IN_BLOCK(D_ENV_OS_ID, 0x4)     ||  \
-          (D_ENV_OS_ID == D_ENV_OS_FLAG_ANDROID)          )
+    #if D_ENV_IS_OS_POSIX_LIKE_OR_ANDROID(D_ENV_OS_ID)
         #define D_ENV_C_HAS_UNISTD_H 1
     #else
         #define D_ENV_C_HAS_UNISTD_H 0
@@ -1870,11 +1724,7 @@
 // D_ENV_C_HAS_SYS_TYPES_H
 //   feature: detect if sys/types.h is available
 #ifndef D_ENV_C_HAS_SYS_TYPES_H
-    #if ( D_ENV_IS_OS_FLAG_UNIX(D_ENV_OS_ID)              ||  \
-          (D_ENV_OS_ID == D_ENV_OS_FLAG_LINUX)            ||  \
-          D_ENV_IS_OS_FLAG_IN_BLOCK(D_ENV_OS_ID, 0x0)     ||  \
-          D_ENV_IS_OS_FLAG_IN_BLOCK(D_ENV_OS_ID, 0x4)     ||  \
-          D_ENV_IS_OS_WINDOWS(D_ENV_OS_ID) )
+    #if D_ENV_IS_OS_POSIX_LIKE_OR_WINDOWS(D_ENV_OS_ID)
         #define D_ENV_C_HAS_SYS_TYPES_H 1
     #else
         #define D_ENV_C_HAS_SYS_TYPES_H 0
@@ -1884,11 +1734,7 @@
 // D_ENV_C_HAS_SYS_STAT_H
 //   feature: detect if sys/stat.h is available
 #ifndef D_ENV_C_HAS_SYS_STAT_H
-    #if ( D_ENV_IS_OS_FLAG_UNIX(D_ENV_OS_ID)              ||  \
-          (D_ENV_OS_ID == D_ENV_OS_FLAG_LINUX)            ||  \
-          D_ENV_IS_OS_FLAG_IN_BLOCK(D_ENV_OS_ID, 0x0)     ||  \
-          D_ENV_IS_OS_FLAG_IN_BLOCK(D_ENV_OS_ID, 0x4)     ||  \
-          D_ENV_IS_OS_WINDOWS(D_ENV_OS_ID) )
+    #if D_ENV_IS_OS_POSIX_LIKE_OR_WINDOWS(D_ENV_OS_ID)
         #define D_ENV_C_HAS_SYS_STAT_H 1
     #else
         #define D_ENV_C_HAS_SYS_STAT_H 0
@@ -1898,10 +1744,7 @@
 // D_ENV_C_HAS_DIRENT_H
 //   feature: detect if dirent.h is available for directory operations
 #ifndef D_ENV_C_HAS_DIRENT_H
-    #if ( D_ENV_IS_OS_FLAG_UNIX(D_ENV_OS_ID)              ||  \
-          (D_ENV_OS_ID == D_ENV_OS_FLAG_LINUX)            ||  \
-          D_ENV_IS_OS_FLAG_IN_BLOCK(D_ENV_OS_ID, 0x0)     ||  \
-          D_ENV_IS_OS_FLAG_IN_BLOCK(D_ENV_OS_ID, 0x4)     )
+    #if D_ENV_IS_OS_POSIX_LIKE(D_ENV_OS_ID)
         #define D_ENV_C_HAS_DIRENT_H 1
     #else
         #define D_ENV_C_HAS_DIRENT_H 0
@@ -1916,10 +1759,7 @@
 // D_ENV_C_HAS_STRTOK_R
 //   feature: detect if strtok_r (reentrant strtok) is available
 #ifndef D_ENV_C_HAS_STRTOK_R
-    #if ( D_ENV_IS_OS_FLAG_UNIX(D_ENV_OS_ID)              ||  \
-          (D_ENV_OS_ID == D_ENV_OS_FLAG_LINUX)            ||  \
-          D_ENV_IS_OS_FLAG_IN_BLOCK(D_ENV_OS_ID, 0x0)     ||  \
-          D_ENV_IS_OS_FLAG_IN_BLOCK(D_ENV_OS_ID, 0x4)     )
+    #if D_ENV_IS_OS_POSIX_LIKE(D_ENV_OS_ID)
         #define D_ENV_C_HAS_STRTOK_R 1
     #else
         #define D_ENV_C_HAS_STRTOK_R 0
@@ -1927,10 +1767,12 @@
 #endif
 
 // D_ENV_C_HAS_STRTOK_S
-//   feature: detect if strtok_s (Microsoft's reentrant strtok) is available
+//   feature: detect if strtok_s (C11 Annex K / MSVC reentrant strtok)
+// is available
 #ifndef D_ENV_C_HAS_STRTOK_S
-    #if ( D_ENV_IS_OS_WINDOWS(D_ENV_OS_ID) ||  \
-          defined(D_ENV_COMPILER_MSVC) )
+    #if ( D_ENV_IS_OS_WINDOWS(D_ENV_OS_ID)  ||  \
+          defined(D_ENV_COMPILER_MSVC)       ||  \
+          defined(__STDC_LIB_EXT1__) )
         #define D_ENV_C_HAS_STRTOK_S 1
     #else
         #define D_ENV_C_HAS_STRTOK_S 0
@@ -1938,12 +1780,13 @@
 #endif
 
 // D_ENV_C_HAS_SNPRINTF
-//   feature: detect if snprintf is available (C99+)
+//   feature: detect if snprintf or a close equivalent is available (C99+)
 #ifndef D_ENV_C_HAS_SNPRINTF
     #if D_ENV_LANG_IS_C99_OR_HIGHER
         #define D_ENV_C_HAS_SNPRINTF 1
     #elif D_ENV_IS_OS_WINDOWS(D_ENV_OS_ID)
-        // Windows has _snprintf
+        // Windows has _snprintf (not fully C99-conforming; conforming
+        // snprintf available in MSVC 2015+ / _MSC_VER >= 1900)
         #define D_ENV_C_HAS_SNPRINTF 1
     #else
         #define D_ENV_C_HAS_SNPRINTF 0
@@ -1951,12 +1794,10 @@
 #endif
 
 // D_ENV_C_HAS_STRDUP
-//   feature: detect if strdup is available (POSIX)
+//   feature: detect if strdup is available (POSIX, standardized in C23)
 #ifndef D_ENV_C_HAS_STRDUP
-    #if ( D_ENV_IS_OS_FLAG_UNIX(D_ENV_OS_ID)              ||  \
-          (D_ENV_OS_ID == D_ENV_OS_FLAG_LINUX)            ||  \
-          D_ENV_IS_OS_FLAG_IN_BLOCK(D_ENV_OS_ID, 0x0)     ||  \
-          D_ENV_IS_OS_FLAG_IN_BLOCK(D_ENV_OS_ID, 0x4)     )
+    #if ( D_ENV_IS_OS_POSIX_LIKE(D_ENV_OS_ID) ||  \
+          D_ENV_LANG_IS_C23_OR_HIGHER )
         #define D_ENV_C_HAS_STRDUP 1
     #else
         #define D_ENV_C_HAS_STRDUP 0
@@ -1964,12 +1805,10 @@
 #endif
 
 // D_ENV_C_HAS_STRNDUP
-//   feature: detect if strndup is available (POSIX)
+//   feature: detect if strndup is available (POSIX, standardized in C23)
 #ifndef D_ENV_C_HAS_STRNDUP
-    #if ( D_ENV_IS_OS_FLAG_UNIX(D_ENV_OS_ID)              ||  \
-          (D_ENV_OS_ID == D_ENV_OS_FLAG_LINUX)            ||  \
-          D_ENV_IS_OS_FLAG_IN_BLOCK(D_ENV_OS_ID, 0x0)     ||  \
-          D_ENV_IS_OS_FLAG_IN_BLOCK(D_ENV_OS_ID, 0x4)     )
+    #if ( D_ENV_IS_OS_POSIX_LIKE(D_ENV_OS_ID) ||  \
+          D_ENV_LANG_IS_C23_OR_HIGHER )
         #define D_ENV_C_HAS_STRNDUP 1
     #else
         #define D_ENV_C_HAS_STRNDUP 0
@@ -1979,10 +1818,7 @@
 // D_ENV_C_HAS_STRCASECMP
 //   feature: detect if strcasecmp is available (POSIX)
 #ifndef D_ENV_C_HAS_STRCASECMP
-    #if ( D_ENV_IS_OS_FLAG_UNIX(D_ENV_OS_ID)              ||  \
-          (D_ENV_OS_ID == D_ENV_OS_FLAG_LINUX)            ||  \
-          D_ENV_IS_OS_FLAG_IN_BLOCK(D_ENV_OS_ID, 0x0)     ||  \
-          D_ENV_IS_OS_FLAG_IN_BLOCK(D_ENV_OS_ID, 0x4)     )
+    #if D_ENV_IS_OS_POSIX_LIKE(D_ENV_OS_ID)
         #define D_ENV_C_HAS_STRCASECMP 1
     #else
         #define D_ENV_C_HAS_STRCASECMP 0
@@ -2002,10 +1838,7 @@
 // D_ENV_C_HAS_MEMCCPY
 //   feature: detect if memccpy is available (POSIX)
 #ifndef D_ENV_C_HAS_MEMCCPY
-    #if ( D_ENV_IS_OS_FLAG_UNIX(D_ENV_OS_ID)              ||  \
-          (D_ENV_OS_ID == D_ENV_OS_FLAG_LINUX)            ||  \
-          D_ENV_IS_OS_FLAG_IN_BLOCK(D_ENV_OS_ID, 0x0)     ||  \
-          D_ENV_IS_OS_FLAG_IN_BLOCK(D_ENV_OS_ID, 0x4)     )
+    #if D_ENV_IS_OS_POSIX_LIKE(D_ENV_OS_ID)
         #define D_ENV_C_HAS_MEMCCPY 1
     #else
         #define D_ENV_C_HAS_MEMCCPY 0
@@ -2017,10 +1850,20 @@
 // E.  File System and I/O Features
 // -----------------------------------------------------------------------------
 
+// D_ENV_C_HAS_FLOCK
+//   feature: detect if flock (file locking) is available
+#ifndef D_ENV_C_HAS_FLOCK
+    #if D_ENV_IS_OS_POSIX_LIKE(D_ENV_OS_ID)
+        #define D_ENV_C_HAS_FLOCK 1
+    #else
+        #define D_ENV_C_HAS_FLOCK 0
+    #endif
+#endif
+
 // D_ENV_C_HAS_FOPEN_S
 //   feature: detect if fopen_s is available (C11 Annex K / MSVC)
 #ifndef D_ENV_C_HAS_FOPEN_S
-    #if ( D_ENV_IS_OS_WINDOWS(D_ENV_OS_ID) ||  \
+    #if ( D_ENV_IS_OS_WINDOWS(D_ENV_OS_ID) ||                \
           (defined(__STDC_LIB_EXT1__)) )
         #define D_ENV_C_HAS_FOPEN_S 1
     #else
@@ -2028,42 +1871,13 @@
     #endif
 #endif
 
-// D_ENV_C_HAS_MMAP
-//   feature: detect if mmap (memory-mapped files) is available
-#ifndef D_ENV_C_HAS_MMAP
-    #if ( D_ENV_IS_OS_FLAG_UNIX(D_ENV_OS_ID)              ||  \
-          (D_ENV_OS_ID == D_ENV_OS_FLAG_LINUX)            ||  \
-          D_ENV_IS_OS_FLAG_IN_BLOCK(D_ENV_OS_ID, 0x0)     ||  \
-          D_ENV_IS_OS_FLAG_IN_BLOCK(D_ENV_OS_ID, 0x4)     )
-        #define D_ENV_C_HAS_MMAP 1
-    #else
-        #define D_ENV_C_HAS_MMAP 0
-    #endif
-#endif
-
 // D_ENV_C_HAS_FSYNC
 //   feature: detect if fsync is available (POSIX)
 #ifndef D_ENV_C_HAS_FSYNC
-    #if ( D_ENV_IS_OS_FLAG_UNIX(D_ENV_OS_ID)              ||  \
-          (D_ENV_OS_ID == D_ENV_OS_FLAG_LINUX)            ||  \
-          D_ENV_IS_OS_FLAG_IN_BLOCK(D_ENV_OS_ID, 0x0)     ||  \
-          D_ENV_IS_OS_FLAG_IN_BLOCK(D_ENV_OS_ID, 0x4)     )
+    #if D_ENV_IS_OS_POSIX_LIKE(D_ENV_OS_ID)
         #define D_ENV_C_HAS_FSYNC 1
     #else
         #define D_ENV_C_HAS_FSYNC 0
-    #endif
-#endif
-
-// D_ENV_C_HAS_FLOCK
-//   feature: detect if flock (file locking) is available
-#ifndef D_ENV_C_HAS_FLOCK
-    #if ( D_ENV_IS_OS_FLAG_UNIX(D_ENV_OS_ID)              ||  \
-          (D_ENV_OS_ID == D_ENV_OS_FLAG_LINUX)            ||  \
-          D_ENV_IS_OS_FLAG_IN_BLOCK(D_ENV_OS_ID, 0x0)     ||  \
-          D_ENV_IS_OS_FLAG_IN_BLOCK(D_ENV_OS_ID, 0x4)     )
-        #define D_ENV_C_HAS_FLOCK 1
-    #else
-        #define D_ENV_C_HAS_FLOCK 0
     #endif
 #endif
 
@@ -2074,6 +1888,27 @@
         #define D_ENV_C_HAS_LOCKFILE 1
     #else
         #define D_ENV_C_HAS_LOCKFILE 0
+    #endif
+#endif
+
+// D_ENV_C_HAS_MMAP
+//   feature: detect if mmap (memory-mapped files) is available
+#ifndef D_ENV_C_HAS_MMAP
+    #if D_ENV_IS_OS_POSIX_LIKE(D_ENV_OS_ID)
+        #define D_ENV_C_HAS_MMAP 1
+    #else
+        #define D_ENV_C_HAS_MMAP 0
+    #endif
+#endif
+
+// D_ENV_C_HAS_SCANF_S
+//   feature: detect if scanf_s is available (C11 Annex K / MSVC)
+#ifndef D_ENV_C_HAS_SCANF_S
+    #if ( defined(__STDC_LIB_EXT1__) ||  \
+          D_ENV_IS_OS_WINDOWS(D_ENV_OS_ID) )
+        #define D_ENV_C_HAS_SCANF_S 1
+    #else
+        #define D_ENV_C_HAS_SCANF_S 0
     #endif
 #endif
 
@@ -2099,10 +1934,7 @@
 // D_ENV_C_HAS_CLOCK_GETTIME
 //   feature: detect if clock_gettime is available (POSIX)
 #ifndef D_ENV_C_HAS_CLOCK_GETTIME
-    #if ( D_ENV_IS_OS_FLAG_UNIX(D_ENV_OS_ID)              ||  \
-          (D_ENV_OS_ID == D_ENV_OS_FLAG_LINUX)            ||  \
-          D_ENV_IS_OS_FLAG_IN_BLOCK(D_ENV_OS_ID, 0x0)     ||  \
-          D_ENV_IS_OS_FLAG_IN_BLOCK(D_ENV_OS_ID, 0x4)     )
+    #if D_ENV_IS_OS_POSIX_LIKE(D_ENV_OS_ID)
         #define D_ENV_C_HAS_CLOCK_GETTIME 1
     #else
         #define D_ENV_C_HAS_CLOCK_GETTIME 0
@@ -2112,10 +1944,7 @@
 // D_ENV_C_HAS_GETTIMEOFDAY
 //   feature: detect if gettimeofday is available (POSIX)
 #ifndef D_ENV_C_HAS_GETTIMEOFDAY
-    #if ( D_ENV_IS_OS_FLAG_UNIX(D_ENV_OS_ID)              ||  \
-          (D_ENV_OS_ID == D_ENV_OS_FLAG_LINUX)            ||  \
-          D_ENV_IS_OS_FLAG_IN_BLOCK(D_ENV_OS_ID, 0x0)     ||  \
-          D_ENV_IS_OS_FLAG_IN_BLOCK(D_ENV_OS_ID, 0x4)     )
+    #if D_ENV_IS_OS_POSIX_LIKE(D_ENV_OS_ID)
         #define D_ENV_C_HAS_GETTIMEOFDAY 1
     #else
         #define D_ENV_C_HAS_GETTIMEOFDAY 0
@@ -2189,10 +2018,7 @@
 // D_ENV_C_HAS_BSD_SOCKETS
 //   feature: detect if BSD sockets are available
 #ifndef D_ENV_C_HAS_BSD_SOCKETS
-    #if ( D_ENV_IS_OS_FLAG_UNIX(D_ENV_OS_ID)              ||  \
-          (D_ENV_OS_ID == D_ENV_OS_FLAG_LINUX)            ||  \
-          D_ENV_IS_OS_FLAG_IN_BLOCK(D_ENV_OS_ID, 0x0)     ||  \
-          D_ENV_IS_OS_FLAG_IN_BLOCK(D_ENV_OS_ID, 0x4)     )
+    #if D_ENV_IS_OS_POSIX_LIKE(D_ENV_OS_ID)
         #define D_ENV_C_HAS_BSD_SOCKETS 1
     #else
         #define D_ENV_C_HAS_BSD_SOCKETS 0
@@ -2202,11 +2028,7 @@
 // D_ENV_C_HAS_GETADDRINFO
 //   feature: detect if getaddrinfo is available (modern socket API)
 #ifndef D_ENV_C_HAS_GETADDRINFO
-    #if ( D_ENV_IS_OS_FLAG_UNIX(D_ENV_OS_ID)              ||  \
-          (D_ENV_OS_ID == D_ENV_OS_FLAG_LINUX)            ||  \
-          D_ENV_IS_OS_FLAG_IN_BLOCK(D_ENV_OS_ID, 0x0)     ||  \
-          D_ENV_IS_OS_FLAG_IN_BLOCK(D_ENV_OS_ID, 0x4)     ||  \
-          D_ENV_IS_OS_WINDOWS(D_ENV_OS_ID) )
+    #if D_ENV_IS_OS_POSIX_LIKE_OR_WINDOWS(D_ENV_OS_ID)
         #define D_ENV_C_HAS_GETADDRINFO 1
     #else
         #define D_ENV_C_HAS_GETADDRINFO 0
@@ -2221,10 +2043,7 @@
 // D_ENV_C_HAS_FORK
 //   feature: detect if fork() is available (POSIX)
 #ifndef D_ENV_C_HAS_FORK
-    #if ( D_ENV_IS_OS_FLAG_UNIX(D_ENV_OS_ID)              ||  \
-          (D_ENV_OS_ID == D_ENV_OS_FLAG_LINUX)            ||  \
-          D_ENV_IS_OS_FLAG_IN_BLOCK(D_ENV_OS_ID, 0x0)     ||  \
-          D_ENV_IS_OS_FLAG_IN_BLOCK(D_ENV_OS_ID, 0x4)     )
+    #if D_ENV_IS_OS_POSIX_LIKE(D_ENV_OS_ID)
         #define D_ENV_C_HAS_FORK 1
     #else
         #define D_ENV_C_HAS_FORK 0
@@ -2234,10 +2053,7 @@
 // D_ENV_C_HAS_EXECVE
 //   feature: detect if execve() is available (POSIX)
 #ifndef D_ENV_C_HAS_EXECVE
-    #if ( D_ENV_IS_OS_FLAG_UNIX(D_ENV_OS_ID)              ||  \
-          (D_ENV_OS_ID == D_ENV_OS_FLAG_LINUX)            ||  \
-          D_ENV_IS_OS_FLAG_IN_BLOCK(D_ENV_OS_ID, 0x0)     ||  \
-          D_ENV_IS_OS_FLAG_IN_BLOCK(D_ENV_OS_ID, 0x4)     )
+    #if D_ENV_IS_OS_POSIX_LIKE(D_ENV_OS_ID)
         #define D_ENV_C_HAS_EXECVE 1
     #else
         #define D_ENV_C_HAS_EXECVE 0
@@ -2247,11 +2063,7 @@
 // D_ENV_C_HAS_GETPID
 //   feature: detect if getpid() is available
 #ifndef D_ENV_C_HAS_GETPID
-    #if ( D_ENV_IS_OS_FLAG_UNIX(D_ENV_OS_ID)              ||  \
-          (D_ENV_OS_ID == D_ENV_OS_FLAG_LINUX)            ||  \
-          D_ENV_IS_OS_FLAG_IN_BLOCK(D_ENV_OS_ID, 0x0)     ||  \
-          D_ENV_IS_OS_FLAG_IN_BLOCK(D_ENV_OS_ID, 0x4)     ||  \
-          D_ENV_IS_OS_WINDOWS(D_ENV_OS_ID) )
+    #if D_ENV_IS_OS_POSIX_LIKE_OR_WINDOWS(D_ENV_OS_ID)
         #define D_ENV_C_HAS_GETPID 1
     #else
         #define D_ENV_C_HAS_GETPID 0
@@ -2261,11 +2073,7 @@
 // D_ENV_C_HAS_SIGNAL_H
 //   feature: detect if signal.h is available
 #ifndef D_ENV_C_HAS_SIGNAL_H
-    #if ( D_ENV_IS_OS_FLAG_UNIX(D_ENV_OS_ID)              ||  \
-          (D_ENV_OS_ID == D_ENV_OS_FLAG_LINUX)            ||  \
-          D_ENV_IS_OS_FLAG_IN_BLOCK(D_ENV_OS_ID, 0x0)     ||  \
-          D_ENV_IS_OS_FLAG_IN_BLOCK(D_ENV_OS_ID, 0x4)     ||  \
-          D_ENV_IS_OS_WINDOWS(D_ENV_OS_ID) )
+    #if D_ENV_IS_OS_POSIX_LIKE_OR_WINDOWS(D_ENV_OS_ID)
         #define D_ENV_C_HAS_SIGNAL_H 1
     #else
         #define D_ENV_C_HAS_SIGNAL_H 0
@@ -2282,7 +2090,9 @@
 #ifndef D_ENV_C_HAS_ALIGNED_ALLOC
     #if D_ENV_LANG_IS_C11_OR_HIGHER
         #if !defined(__APPLE__)
-            // Apple doesn't support aligned_alloc until macOS 10.15
+            // TODO: Apple supports aligned_alloc from macOS 10.15+;
+            // refine with __MAC_OS_X_VERSION_MIN_REQUIRED >= 101500
+            // if targeting 10.15+ only.
             #define D_ENV_C_HAS_ALIGNED_ALLOC 1
         #else
             #define D_ENV_C_HAS_ALIGNED_ALLOC 0
@@ -2295,10 +2105,7 @@
 // D_ENV_C_HAS_POSIX_MEMALIGN
 //   feature: detect if posix_memalign is available (POSIX)
 #ifndef D_ENV_C_HAS_POSIX_MEMALIGN
-    #if ( D_ENV_IS_OS_FLAG_UNIX(D_ENV_OS_ID)              ||  \
-          (D_ENV_OS_ID == D_ENV_OS_FLAG_LINUX)            ||  \
-          D_ENV_IS_OS_FLAG_IN_BLOCK(D_ENV_OS_ID, 0x0)     ||  \
-          D_ENV_IS_OS_FLAG_IN_BLOCK(D_ENV_OS_ID, 0x4)     )
+    #if D_ENV_IS_OS_POSIX_LIKE(D_ENV_OS_ID)
         #define D_ENV_C_HAS_POSIX_MEMALIGN 1
     #else
         #define D_ENV_C_HAS_POSIX_MEMALIGN 0
@@ -2318,11 +2125,7 @@
 // D_ENV_C_HAS_ALLOCA
 //   feature: detect if alloca (stack allocation) is available
 #ifndef D_ENV_C_HAS_ALLOCA
-    #if ( D_ENV_IS_OS_FLAG_UNIX(D_ENV_OS_ID)              ||  \
-          (D_ENV_OS_ID == D_ENV_OS_FLAG_LINUX)            ||  \
-          D_ENV_IS_OS_FLAG_IN_BLOCK(D_ENV_OS_ID, 0x0)     ||  \
-          D_ENV_IS_OS_FLAG_IN_BLOCK(D_ENV_OS_ID, 0x4)     ||  \
-          D_ENV_IS_OS_WINDOWS(D_ENV_OS_ID) )
+    #if D_ENV_IS_OS_POSIX_LIKE_OR_WINDOWS(D_ENV_OS_ID)
         #define D_ENV_C_HAS_ALLOCA 1
     #else
         #define D_ENV_C_HAS_ALLOCA 0
@@ -2448,7 +2251,10 @@
 #endif
 
 // D_ENV_C_HAS_GETENTROPY
-//   feature: detect if getentropy (secure random) is available
+//   feature: detect if getentropy (secure random) is available.
+// note: intentionally narrower than D_ENV_IS_OS_POSIX_LIKE — getentropy
+// is relatively recent (glibc 2.25 / OpenBSD 5.6) and not available on
+// all generic Unix systems, so the Unix block (0x1) is omitted.
 #ifndef D_ENV_C_HAS_GETENTROPY
     #if ( (D_ENV_OS_ID == D_ENV_OS_FLAG_LINUX)            ||  \
           D_ENV_IS_OS_FLAG_IN_BLOCK(D_ENV_OS_ID, 0x0)     ||  \
@@ -2468,6 +2274,9 @@
 // build configuration detection logic
 #if D_CFG_ENV_BUILD_IS_ENABLED
     // automatic detection
+    // NOTE: !defined(NDEBUG) means builds that define neither DEBUG nor
+    // NDEBUG will be classified as Debug. If this is too aggressive for
+    // your build system, consider requiring an affirmative debug signal.
     #if ( defined(DEBUG)  ||  \
           defined(_DEBUG) ||  \
           (!defined(NDEBUG)) )
@@ -2489,7 +2298,7 @@
 #endif  // D_CFG_ENV_BUILD_IS_ENABLED
 
 // =============================================================================
-// VIII. DEBUG UTILITIES
+// IX.  DEBUG UTILITIES
 // =============================================================================
 
 #ifdef D_DEBUG_
@@ -2500,4 +2309,4 @@
 #endif  // D_DEBUG_
 
 
-#endif  // DJINTERP_C_ENVIRONMENT_
+#endif  // DJINTERP_ENVIRONMENT_
