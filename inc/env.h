@@ -48,7 +48,7 @@
     #define D_CFG_ENV_CUSTOM 0
 #endif
 
-#include ".\core\config\config_env.h"
+#include ".\core\config\env_config.h"
 
 // =============================================================================
 // II.  LANGUAGE ENVIRONMENT 
