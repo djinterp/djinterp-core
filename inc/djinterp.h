@@ -11,7 +11,7 @@
 
 /*
 TABLE OF CONTENTS
-==============================================
+=================
 I.   FUNDAMENTAL TYPES & PRE-DEFINED CONSTANTS
      -----------------------------------------
 i.   ENVIRONMENT
@@ -139,19 +139,18 @@ Do something with this, either here or in env.h OR in dconfig.h
     // `stdbool.h` has already been included, do nothing
 
 // #elif defined(D_ENV_LANG_IS_C23_OR_HIGHER) && D_ENV_LANG_IS_C23_OR_HIGHER()
-#elif ( defined(__STDC_VERSION__) &&  \
-       (__STDC_VERSION__ >= 202311L) )
+#elif D_ENV_LANG_IS_C23_OR_HIGHER
     // C23 or newer - bool is a built-in keyword
     // nothing to do, C23 has bool, true, false as keywords
 
-#elif ( (defined(__STDC_VERSION__)) &&              \
-        (__STDC_VERSION__ >= 199901L) )
+#elif D_ENV_LANG_IS_C99_OR_HIGHER
     // C99 or newer - use the standard header
     #include <stdbool.h>
 #elif defined(__cplusplus)
     // C++ has built-in bool
     // nothing to do, C++ already has bool, true, false
-#elif defined(_MSC_VER)
+#elif ( defined(D_ENV_COMPILER_MSVC) &&  \
+        (D_ENV_COMPILER_MSVC == 1) )
     // Microsoft compiler without C99 support
     #if !defined(__bool_true_false_are_defined)
         #define __bool_true_false_are_defined 1
@@ -187,6 +186,17 @@ Do something with this, either here or in env.h OR in dconfig.h
     #endif
 #endif
 
+#if D_ENV_LANG_IS_C99_OR_HIGHER
+    #define D_RESTRICT restrict
+#elif ( defined(D_ENV_COMPILER_GCC) ||  \
+        defined(D_ENV_COMPILER_CLANG) )
+    #define D_RESTRICT __restrict__
+#elif defined(D_ENV_COMPILER_MSVC)
+    #define D_RESTRICT __restrict
+#else
+    #define D_RESTRICT
+#endif  // D_ENV_LANG_IS_C99_OR_HIGHER
+
 // b.
 // ssize_t
 //   type: signed-size_t; 
@@ -198,13 +208,13 @@ Do something with this, either here or in env.h OR in dconfig.h
         #ifndef __ssize_t_defined
             #ifndef _SSIZE_T_
                 #ifndef ssize_t
-                    #if defined(_WIN64)
+                    #if D_ENV_OS_USING_WINDOWS64
                         typedef long long ssize_t;
                         #define SSIZE_MAX LLONG_MAX
                     #else
                         typedef long ssize_t;
                         #define SSIZE_MAX LONG_MAX
-                    #endif	// defined(_WIN64)
+                    #endif	// defined(D_ENV_OS_USING_WINDOWS64)
 
                     #define _SSIZE_T_
                     #define _SSIZE_T_DEFINED
@@ -224,7 +234,7 @@ Do something with this, either here or in env.h OR in dconfig.h
 #endif
 
 #ifndef D_STATIC_ASSERT
-    #if defined(__cplusplus)
+    #if D_ENV_LANG_DETECTED_CPP
         // >=C++11 has the static_assert keyword.
         #if D_ENV_LANG_IS_CPP11_OR_HIGHER()
             #define D_STATIC_ASSERT(cond, msg) static_assert((cond), msg)
@@ -248,6 +258,67 @@ Do something with this, either here or in env.h OR in dconfig.h
         #endif
     #endif
 #endif
+// ============================================================================
+// D_INLINE
+//   Used for inlining functions; stripped when D_TESTING is defined.
+// ============================================================================
+#ifdef D_TESTING
+    #define D_INLINE
+#else
+    #if defined(D_ENV_COMPILER_MSVC)
+        #define D_INLINE        __forceinline
+    #elif ( defined(D_ENV_COMPILER_GCC) ||  \
+            defined(D_ENV_COMPILER_CLANG) )
+        #define D_INLINE        inline __attribute__((always_inline))
+    #else
+        #define D_INLINE        inline
+    #endif
+#endif
+
+// D_NOINLINE
+//   Explicitly prevents inlining for debugging/profiling.
+#if defined(D_ENV_COMPILER_MSVC)
+    #define D_NOINLINE          __declspec(noinline)
+#elif ( defined(D_ENV_COMPILER_GCC) ||  \
+        defined(D_ENV_COMPILER_CLANG) )
+    #define D_NOINLINE          __attribute__((noinline))
+#else
+    #define D_NOINLINE
+#endif
+
+// D_STATIC
+//   Stripped when D_TESTING is defined, but only in C++ (where linkage can be
+//   worked around); retained in C to avoid duplicate-symbol errors across TUs.
+#if defined(D_TESTING) &&                                               \
+    defined(D_ENV_LANG_USING_CPP) && (D_ENV_LANG_USING_CPP != 1)
+    #define D_STATIC
+#else
+    #define D_STATIC            static
+#endif
+
+// D_CONSTEXPR
+//   constexpr in C++11+; falls back to const in C or pre-C++11.
+//   Stripped when D_TESTING_CONSTEXPR is defined and == 1.
+#if defined(D_TESTING_CONSTEXPR) && (D_TESTING_CONSTEXPR == 1)
+    #define D_CONSTEXPR
+#else
+    #if defined(D_ENV_LANG_DETECTED_CPP) &&                             \
+        (D_ENV_LANG_CPP_STANDARD >= D_ENV_LANG_CPP_STANDARD_CPP11)
+        #define D_CONSTEXPR     constexpr
+    #else
+        #define D_CONSTEXPR     const
+    #endif
+#endif
+
+// ============================================================================
+// Compound qualifiers (official specifier order: static constexpr inline)
+//   Composed from the primitives above so they respect every toggle
+//   independently.
+// ============================================================================
+#define D_STATIC_INLINE                 D_STATIC D_INLINE
+#define D_STATIC_CONSTEXPR              D_STATIC D_CONSTEXPR
+#define D_CONSTEXPR_INLINE              D_CONSTEXPR D_INLINE
+#define D_STATIC_CONSTEXPR_INLINE       D_STATIC D_CONSTEXPR D_INLINE
 
 /// I.i.2.   Additional types
 
@@ -257,16 +328,15 @@ Do something with this, either here or in env.h OR in dconfig.h
 //   typedef: function pointer type for applying an operation to an element.
 typedef void (*fn_apply)(void* _element);
 
-// fn_apply_ctx
+// fn_apply_context
 //   typedef: function pointer type for applying an operation to an element
 // with additional context.
-typedef void (*fn_apply_ctx)(void* _element, void* _context);
+typedef void (*fn_apply_context)(void* _element, void* _context);
 
 // fn_callback
-//   function pointer: callback function with variable arguments passed as a 
-// sized void** array, where the first parameter is the number of elements
-// and the second is a point to the start of the array.
-typedef void (*fn_callback)(size_t _size, void** _elements);
+//   function pointer: generic callback with optional context parameter.
+// _context may be NULL.
+typedef void (*fn_callback)(void* _context);
 
 // fn_comparator
 //   function pointer: compares two values of identical type, and returns a
@@ -327,7 +397,7 @@ typedef size_t (*fn_write)(char* const _buffer, size_t _size);
 //   keyword: resolves to `maths`.
 // Used for variables, macros, namespaces, etc. that pertain to the `maths`
 // submodule.
-#define D_KEYWORD_MATHS	            maths
+#define D_KEYWORD_MATH	            math
 
 // D_KEYWORD_MESSAGE
 //   keyword: resolves to `message`.
@@ -396,43 +466,6 @@ typedef size_t (*fn_write)(char* const _buffer, size_t _size);
 #   define D_INDENT "  "
 #endif  // D_INDENT
 
-// D_INLINE
-//   constant: used for inlining functions; should be turned off with 
-// `/D D_TESTING=1` in compiler args.
-#ifdef D_TESTING
-    #define D_INLINE
-    #define D_STATIC
-    #define D_STATIC_INLINE
-#else
-    #define D_STATIC        static 
-    
-    // per-compiler inline attributes for optimal performance
-    #if defined(D_ENV_COMPILER_MSVC)
-        #define D_INLINE        __forceinline
-        #define D_STATIC_INLINE static __forceinline
-    #elif ( defined(D_ENV_COMPILER_GCC) ||  \
-            defined(D_ENV_COMPILER_CLANG) )
-        #define D_INLINE        inline __attribute__((always_inline))
-        #define D_STATIC_INLINE static inline __attribute__((always_inline))
-    #else
-        #define D_INLINE        inline
-        #define D_STATIC_INLINE static inline
-    #endif
-#endif
-
-// D_NOINLINE
-//   constant: used to explicitly prevent inlining for debugging/profiling.
-#if defined(D_ENV_COMPILER_MSVC)
-    #define D_NOINLINE     __declspec(noinline)
-
-#elif ( defined(D_ENV_COMPILER_GCC) ||  \
-        defined(D_ENV_COMPILER_CLANG) )
-    #define D_NOINLINE     __attribute__((noinline))
-
-#else
-    #define D_NOINLINE
-#endif
-
 // d_index
 //   type: a type corresponding to an vector index that may be negative (in
 // addition to the traditional positive or zero vector indices).
@@ -461,22 +494,28 @@ bool   d_index_is_valid(d_index _index,
 // D_CLAMP_INDEX
 //   macro: clamps an index to valid range for given array size
 //   Returns 0 for negative indices, (SIZE-1) for too-large indices
-#define D_CLAMP_INDEX(INDEX, SIZE) \
-    ((SIZE) == 0 ? 0 : \
-     (INDEX) < 0 ? 0 : \
-     (INDEX) >= (ssize_t)(SIZE) ? (SIZE) - 1 : (INDEX))
+#define D_CLAMP_INDEX(index, arr_size)          \
+    ( (arr_size) == 0                           \
+      ? 0                                       \
+      : ( (index) < 0                           \
+          ? 0                                   \
+          : ( (index) >= (ssize_t)(arr_size) )  \
+            ? ( (arr_size) - 1 )                \
+            : (index) ) )
 
 // D_INDEX_IN_BOUNDS  
 //   macro: alias for D_IS_VALID_INDEX_N for compatibility
-#define D_INDEX_IN_BOUNDS(INDEX, SIZE) \
-    D_IS_VALID_INDEX_N((INDEX), (SIZE))
+#define D_INDEX_IN_BOUNDS(index, arr_size) \
+    D_IS_VALID_INDEX_N((index), (arr_size))
 
 // D_SAFE_ARR_IDX
 //   macro: safe array indexing that returns the element value, not a pointer
 //   Note: only to be used on stack-allocated arrays whose size is known at compile time
-#define D_SAFE_ARR_IDX(ARR, INDEX) \
-    (D_IS_VALID_INDEX_N((INDEX), sizeof(ARR)/sizeof((ARR)[0])) ? \
-     D_ARR_IDX((ARR), (INDEX)) : (ARR)[0])
+#define D_SAFE_ARR_IDX(arr, arr_size)                                \
+    ( D_IS_VALID_INDEX_N((arr_size), sizeof(arr)/sizeof((arr)[0]) )  \
+        ? D_ARR_IDX((arr), (arr_size))                               \
+        : (arr)[0] )
+
 // D_IS_VALID_INDEX
 //   macro: validates that an INDEX is within bounds for an array of given SIZE
 #define D_IS_VALID_INDEX(INDEX, SIZE)                   \
@@ -568,7 +607,7 @@ bool   d_index_is_valid(d_index _index,
 
     // NS_MATHS
     //   namespace: used for the `maths` submodule namespace for C++.
-    #define NS_MATHS			D_NAMESPACE(D_KEYWORD_MATHS)
+    #define NS_MATH 			D_NAMESPACE(D_KEYWORD_MATH)
 
     // NS_MESSAGE
     //   namespace: used for variables, macros, namespaces, etc. that convey (usually string-based) human-readable information that is conveyed to the user.
